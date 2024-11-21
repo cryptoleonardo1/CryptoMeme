@@ -17,21 +17,31 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#1a1b1e]">
-      <TopBar
-        meme={currentMeme}
-        onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
-        isDetailsOpen={isDetailsOpen}
-      />
-      <div className="max-w-md mx-auto px-4 min-h-screen flex flex-col">
-        <main className="flex-1 flex items-center justify-center py-4">
+    <div className="min-h-screen bg-[#1a1b1e] relative">
+      {/* Fixed Top Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <TopBar
+          meme={currentMeme}
+          onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
+          isDetailsOpen={isDetailsOpen}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="pt-[80px] pb-[64px]"> {/* Adjust these values based on your top/bottom bar heights */}
+        <div className="max-w-md mx-auto px-4 h-[calc(100vh-144px)] flex items-center justify-center">
           <MemeStack
             memes={dummyMemes}
             onMemeChange={setCurrentMeme}
           />
-        </main>
-        <Navigation className="mt-auto" />
+        </div>
       </div>
+
+      {/* Fixed Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <Navigation />
+      </div>
+
       <DetailsPage
         isOpen={isDetailsOpen}
         meme={currentMeme}

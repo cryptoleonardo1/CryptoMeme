@@ -14,7 +14,7 @@ const MemeStack = ({ memes }) => {
   };
 
   return (
-    <div className="relative w-full h-[480px] flex items-center justify-center">
+    <div className="relative w-full h-full">
       {/* Direction Indicators */}
       {lastDirection && (
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
