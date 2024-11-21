@@ -27,8 +27,8 @@ function App() {
         />
       </div>
 
-      {/* Main Content - Fixed Position */}
-      <div className="absolute inset-0 pt-[120px] pb-[60px]">
+      {/* Main Content - Fixed Position with adjusted padding */}
+      <div className="absolute inset-0 pt-[110px] pb-[60px]"> {/* Reduced top padding by 10px */}
         <div className="h-full flex items-center justify-center">
           <div className="w-full px-4">
             <MemeStack
