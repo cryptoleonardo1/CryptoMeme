@@ -14,7 +14,7 @@ const MemeStack = ({ memes }) => {
   };
 
   return (
-    <div className="relative max-w-md mx-auto px-4 h-[480px]">
+    <div className="relative max-w-[calc(100vw-32px)] mx-auto aspect-square">
       {/* Direction Indicators */}
       {lastDirection && (
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
@@ -38,7 +38,7 @@ const MemeStack = ({ memes }) => {
         return (
           <div
             key={meme.id}
-            className={`absolute w-full ${isTop ? 'z-10' : 'z-0'}`}
+            className={`absolute inset-0 ${isTop ? 'z-10' : 'z-0'}`}
             style={{
               transform: `scale(${isTop ? 1 : 0.95}) translateY(${isTop ? 0 : 8}px)`,
               opacity: isTop ? 1 : 0.8,
