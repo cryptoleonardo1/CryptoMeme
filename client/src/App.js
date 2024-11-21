@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
@@ -19,21 +18,21 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#1a1b1e]">
-      <TopBar 
-        meme={currentMeme} 
+      <TopBar
+        meme={currentMeme}
         onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
         isDetailsOpen={isDetailsOpen}
       />
-      <div className="max-w-md mx-auto px-4 pt-32 pb-6">
-        <main className="mb-20">
-          <MemeStack 
-            memes={dummyMemes} 
+      <div className="max-w-md mx-auto px-4 min-h-screen flex flex-col">
+        <main className="flex-1 flex items-center justify-center py-4">
+          <MemeStack
+            memes={dummyMemes}
             onMemeChange={setCurrentMeme}
           />
         </main>
-        <Navigation />
+        <Navigation className="mt-auto" />
       </div>
-      <DetailsPage 
+      <DetailsPage
         isOpen={isDetailsOpen}
         meme={currentMeme}
       />
