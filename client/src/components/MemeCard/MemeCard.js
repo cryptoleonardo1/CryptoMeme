@@ -73,17 +73,6 @@ const MemeCard = ({ meme, onSwipe, isTop, onSwipeDown, onSuperLike }) => {
             alt={meme.projectName}
             className="w-full aspect-square object-cover"
           />
-          
-          {/* Project Info Overlay */}
-          <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/50 to-transparent p-4">
-            <div className="flex justify-between items-start">
-              <h2 className="text-white text-xl font-bold">{meme.projectName}</h2>
-              <div className="flex items-center gap-2">
-                <span className="text-white">Market Cap: ${meme.marketCap || '0'}</span>
-                <span className="text-green-400">+{meme.priceChange || '0'}%</span>
-              </div>
-            </div>
-          </div>
 
           {/* Swipe Indicators */}
           <AnimatePresence>
