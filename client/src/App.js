@@ -17,28 +17,23 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#1a1b1e] relative">
-      {/* Fixed Top Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <TopBar
-          meme={currentMeme}
-          onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
-          isDetailsOpen={isDetailsOpen}
+    <div className="min-h-screen bg-[#1a1b1e]">
+      <TopBar
+        meme={currentMeme}
+        onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
+        isDetailsOpen={isDetailsOpen}
+      />
+      
+      {/* Main Content */}
+      <div className="mt-[140px] mb-[80px]"> {/* Adjust mt value to move card down */}
+        <MemeStack
+          memes={dummyMemes}
+          onMemeChange={setCurrentMeme}
         />
       </div>
 
-      {/* Main Content */}
-      <div className="pt-[100px] pb-[64px]"> {/* Increased top padding by 20px */}
-        <div className="max-w-md mx-auto px-4 h-[calc(100vh-164px)] flex items-center justify-center">
-          <MemeStack
-            memes={dummyMemes}
-            onMemeChange={setCurrentMeme}
-          />
-        </div>
-      </div>
-
-      {/* Fixed Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50">
+      {/* Fixed Bottom Nav */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white">
         <Navigation />
       </div>
 

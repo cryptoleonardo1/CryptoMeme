@@ -14,7 +14,7 @@ const MemeStack = ({ memes }) => {
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative max-w-md mx-auto px-4 h-[480px]">
       {/* Direction Indicators */}
       {lastDirection && (
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
@@ -30,6 +30,7 @@ const MemeStack = ({ memes }) => {
           )}
         </div>
       )}
+      
       {memes.map((meme, index) => {
         if (index < currentIndex) return null;
         if (index > currentIndex + 1) return null;
@@ -51,6 +52,7 @@ const MemeStack = ({ memes }) => {
           </div>
         );
       })}
+      
       {currentIndex >= memes.length && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
