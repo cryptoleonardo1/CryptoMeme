@@ -18,19 +18,19 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#1a1b1e] overflow-hidden"> {/* Add overflow-hidden */}
+    <div className="min-h-screen bg-[#1a1b1e]">
       <TopBar 
         meme={currentMeme} 
         onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
         isDetailsOpen={isDetailsOpen}
       />
-   <div className="h-[calc(100vh-140px-64px)] flex items-center justify-center"> {/* Center meme */}
-     <main className="w-full max-w-md px-4">
-       <MemeStack 
-         memes={dummyMemes} 
-         onMemeChange={setCurrentMeme}
-       />
-     </main>
+      <div className="max-w-md mx-auto px-4 pt-32 pb-6">
+        <main className="mb-20">
+          <MemeStack 
+            memes={dummyMemes} 
+            onMemeChange={setCurrentMeme}
+          />
+        </main>
         <Navigation />
       </div>
       <DetailsPage 
