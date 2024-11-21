@@ -8,8 +8,8 @@ const Navigation = () => {
   };
 
   return (
-    <div className="w-full px-4 py-3 bg-white shadow-lg">
-      <div className="flex justify-around items-center max-w-md mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#1a1b1e] border-t border-gray-800">
+      <div className="max-w-md mx-auto h-full flex justify-around items-center">
         <button
           onClick={() => handleTabChange('memes')}
           className={`flex flex-col items-center ${

@@ -25,7 +25,7 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
             </div>
             <button
               onClick={onDetailsClick}
-              className="w-32 px-3 py-1 bg-[#2c2d31] text-gray-200 rounded-lg text-sm font-medium hover:bg-[#3c3d41] transition-all"
+              className="w-40 px-3 py-1 bg-[#2c2d31] text-gray-200 rounded-lg text-sm font-medium hover:bg-[#3c3d41] transition-all"
             >
               {isDetailsOpen ? "Close Details" : "Details"}
             </button>
@@ -44,7 +44,7 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
             </div>
             <button 
               onClick={() => window.open('https://raydium.io/', '_blank', 'noopener,noreferrer')}
-              className="w-32 px-3 py-1 bg-[#FF3366] text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all"
+              className="w-40 px-3 py-1 bg-[#5BC236] text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all"
             >
               Buy Here
             </button>
