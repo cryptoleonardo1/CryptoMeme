@@ -28,8 +28,8 @@ function App() {
       </div>
 
       {/* Main Content */}
-      <div className="pt-[80px] pb-[64px]"> {/* Adjust these values based on your top/bottom bar heights */}
-        <div className="max-w-md mx-auto px-4 h-[calc(100vh-144px)] flex items-center justify-center">
+      <div className="pt-[100px] pb-[64px]"> {/* Increased top padding by 20px */}
+        <div className="max-w-md mx-auto px-4 h-[calc(100vh-164px)] flex items-center justify-center">
           <MemeStack
             memes={dummyMemes}
             onMemeChange={setCurrentMeme}
