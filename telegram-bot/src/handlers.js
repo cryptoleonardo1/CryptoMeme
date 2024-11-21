@@ -12,7 +12,7 @@ const setupHandlers = (bot) => {
                             [
                                 { 
                                     text: '🚀 Start App',
-                                    web_app: { url: process.env.WEBAPP_URL || 'https://9e53-188-121-171-103.ngrok-free.app' }
+                                    web_app: { url: process.env.WEBAPP_URL }
                                 }
                             ]
                         ]
