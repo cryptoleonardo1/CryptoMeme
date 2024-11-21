@@ -2,14 +2,14 @@ import React, { useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
 import Navigation from './components/Navigation/Navigation';
+import MemeStack from './components/MemeStack/MemeStack';
+import dummyMemes from './data/dummyMemes';
 
 function App() {
   useEffect(() => {
-    // Initialize Telegram WebApp
     WebApp.ready();
     WebApp.expand();
 
-    // Set theme based on Telegram colors
     document.documentElement.style.setProperty('--tg-theme-bg-color', WebApp.backgroundColor);
     document.documentElement.style.setProperty('--tg-theme-text-color', WebApp.textColor);
   }, []);
@@ -21,7 +21,7 @@ function App() {
           <h1 className="text-2xl font-bold text-[#FF3366]">CryptoMeme</h1>
         </header>
         <main className="mb-20">
-          {/* MemeCard component will go here */}
+          <MemeStack memes={dummyMemes} />
         </main>
         <Navigation />
       </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 
-const MemeCard = ({ meme }) => {
+const MemeCard = ({ meme, onSwipe, isTop }) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-30, 30]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
@@ -9,11 +9,10 @@ const MemeCard = ({ meme }) => {
   const handleDragEnd = async () => {
     const xValue = x.get();
     if (Math.abs(xValue) > 100) {
-      // Handle swipe action (like/dislike)
       if (xValue > 0) {
-        console.log('Liked');
+        onSwipe('right');
       } else {
-        console.log('Disliked');
+        onSwipe('left');
       }
     }
   };
@@ -22,7 +21,7 @@ const MemeCard = ({ meme }) => {
     <motion.div 
       className="absolute w-full"
       style={{ x, rotate, opacity }}
-      drag="x"
+      drag={isTop ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
     >
@@ -36,7 +35,12 @@ const MemeCard = ({ meme }) => {
           <h2 className="text-xl font-bold">{meme.projectName}</h2>
           <div className="flex justify-between mt-2 text-sm text-gray-600">
             <span>{meme.projectDetails.network}</span>
-            <span>{meme.projectDetails.marketCap}M</span>
+            <div className="flex items-center">
+              <span className={`${meme.projectDetails.priceChange24h > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {meme.projectDetails.priceChange24h > 0 ? '+' : ''}{meme.projectDetails.priceChange24h}%
+              </span>
+              <span className="ml-2">{meme.projectDetails.marketCap}</span>
+            </div>
           </div>
         </div>
       </div>
