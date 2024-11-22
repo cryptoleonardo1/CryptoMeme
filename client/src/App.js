@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
@@ -10,6 +11,10 @@ import dummyMemes from './data/dummyMemes';
 function App() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [currentMeme, setCurrentMeme] = useState(dummyMemes[0]);
+
+  const handleMemeChange = (meme) => {
+    setCurrentMeme(meme);
+  };
 
   useEffect(() => {
     WebApp.ready();
@@ -27,13 +32,14 @@ function App() {
         />
       </div>
 
-      {/* Main Content - Fixed Position with adjusted padding */}
-      <div className="absolute inset-0 pt-[110px] pb-[60px]"> {/* Reduced top padding by 10px */}
+      {/* Main Content - Fixed Position */}
+      <div className="absolute inset-0 pt-[110px] pb-[60px]">
         <div className="h-full flex items-center justify-center">
           <div className="w-full px-4">
             <MemeStack
               memes={dummyMemes}
-              onMemeChange={setCurrentMeme}
+              onMemeChange={handleMemeChange}
+              currentMeme={currentMeme}
             />
           </div>
         </div>

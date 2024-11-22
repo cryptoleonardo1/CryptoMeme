@@ -1,13 +1,29 @@
+// MemeStack.js
 import React from 'react';
 import MemeCard from '../MemeCard/MemeCard';
 
-const MemeStack = ({ memes }) => {
+const MemeStack = ({ memes, onMemeChange }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [lastDirection, setLastDirection] = React.useState(null);
 
+  // Update current meme whenever index changes
+  React.useEffect(() => {
+    if (memes[currentIndex]) {
+      onMemeChange(memes[currentIndex]);
+    }
+  }, [currentIndex, memes, onMemeChange]);
+
   const handleSwipe = (direction) => {
     setLastDirection(direction);
-    setCurrentIndex(prevIndex => prevIndex + 1);
+    setCurrentIndex(prevIndex => {
+      const newIndex = prevIndex + 1;
+      // Update current meme if within bounds
+      if (newIndex < memes.length) {
+        onMemeChange(memes[newIndex]);
+      }
+      return newIndex;
+    });
+    
     setTimeout(() => {
       setLastDirection(null);
     }, 1000);
@@ -58,7 +74,10 @@ const MemeStack = ({ memes }) => {
           <div className="text-center">
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No more memes!</h3>
             <button
-              onClick={() => setCurrentIndex(0)}
+              onClick={() => {
+                setCurrentIndex(0);
+                onMemeChange(memes[0]);
+              }}
               className="btn-primary"
             >
               Start Over
