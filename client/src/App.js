@@ -23,13 +23,15 @@ function App() {
 
   return (
     <div className="fixed inset-0 bg-[#1a1b1e] overflow-hidden">
-      <div className="fixed top-0 left-0 right-0 flex flex-col z-50">
-        {/* Project Header */}
+      {/* Project Header - Highest z-index */}
+      <div className="fixed top-0 left-0 right-0 z-[70]">
         <div className="w-full bg-[#1a1b1e] py-4">
           <ProjectHeader meme={currentMeme} />
         </div>
+      </div>
 
-        {/* Top Bar with Stats */}
+      {/* Top Bar with Stats */}
+      <div className="fixed top-[72px] left-0 right-0 z-[60]">
         <div className="w-full bg-[#1a1b1e] border-t border-[#2c2d31]">
           <TopBar
             meme={currentMeme}
@@ -40,7 +42,7 @@ function App() {
       </div>
 
       {/* Content Container */}
-      <div className="absolute inset-0 pt-[180px] pb-[60px]">
+      <div className="absolute inset-0 pt-[190px] pb-[60px]"> {/* Increased top padding */}
         <div className="h-full flex items-start justify-center">
           <div className="w-full px-4">
             <MemeStack
@@ -53,11 +55,11 @@ function App() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="fixed bottom-0 left-0 right-0 z-[60]">
         <Navigation />
       </div>
 
-      {/* Details Page */}
+      {/* Details Page - Lower z-index than headers */}
       <DetailsPage
         isOpen={isDetailsOpen}
         meme={currentMeme}

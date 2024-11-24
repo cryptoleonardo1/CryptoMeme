@@ -18,22 +18,13 @@ const CopyIcon = () => (
 );
 
 const DetailsPage = ({ isOpen, meme }) => {
-  const handleCopyContract = async () => {
-    try {
-      await navigator.clipboard.writeText(meme?.projectDetails?.contract || '');
-      // Optionally add a toast/notification here
-    } catch (err) {
-      console.error('Failed to copy contract address');
-    }
-  };
-
   return (
     <div
       className={`fixed left-0 right-0 bg-[#1a1b1e] z-50 transition-transform duration-300 ${
         isOpen ? 'translate-y-0' : 'translate-y-[-120%]'
       }`}
       style={{
-        top: '160px', // Adjusted to account for new layout
+        top: '180px', // Increased to not cover buttons
         bottom: '60px',
         backgroundColor: '#1a1b1e',
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',
@@ -49,7 +40,7 @@ const DetailsPage = ({ isOpen, meme }) => {
                 {meme?.projectDetails?.contract || 'N/A'}
               </div>
               <button
-                onClick={handleCopyContract}
+                onClick={() => navigator.clipboard.writeText(meme?.projectDetails?.contract || '')}
                 className="text-gray-400 hover:text-white transition-colors p-1"
                 title="Copy contract address"
               >
