@@ -1,4 +1,3 @@
-// MemeStack.js
 import React from 'react';
 import MemeCard from '../MemeCard/MemeCard';
 
@@ -6,7 +5,6 @@ const MemeStack = ({ memes, onMemeChange }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [lastDirection, setLastDirection] = React.useState(null);
 
-  // Update current meme whenever index changes
   React.useEffect(() => {
     if (memes[currentIndex]) {
       onMemeChange(memes[currentIndex]);
@@ -17,12 +15,26 @@ const MemeStack = ({ memes, onMemeChange }) => {
     setLastDirection(direction);
     setCurrentIndex(prevIndex => {
       const newIndex = prevIndex + 1;
-      // Update current meme if within bounds
       if (newIndex < memes.length) {
         onMemeChange(memes[newIndex]);
       }
       return newIndex;
     });
+
+    // Handle different swipe actions
+    switch (direction) {
+      case 'right':
+        console.log('Liked', memes[currentIndex].projectName);
+        break;
+      case 'left':
+        console.log('Noped', memes[currentIndex].projectName);
+        break;
+      case 'super':
+        console.log('Super Liked', memes[currentIndex].projectName);
+        break;
+      default:
+        break;
+    }
     
     setTimeout(() => {
       setLastDirection(null);
@@ -42,6 +54,11 @@ const MemeStack = ({ memes, onMemeChange }) => {
           {lastDirection === 'left' && (
             <div className="text-4xl font-bold text-red-500 transform rotate-[30deg]">
               NOPE
+            </div>
+          )}
+          {lastDirection === 'super' && (
+            <div className="text-4xl font-bold text-blue-500">
+              SUPER LIKE
             </div>
           )}
         </div>
