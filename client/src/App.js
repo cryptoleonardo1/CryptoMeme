@@ -35,12 +35,12 @@ function App() {
       {/* Content Container */}
       <div className="absolute inset-0 pt-[80px] pb-[60px] flex flex-col">
         {/* Spacer for Project Header */}
-        <div className="h-[100px]"> {/* Increased height and added margin */}
+        <div className="h-[140px]"> {/* Increased height significantly */}
           <ProjectHeader meme={currentMeme} />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center -mt-6"> {/* Added negative margin to adjust meme card position */}
           <div className="w-full px-4">
             <MemeStack
               memes={dummyMemes}

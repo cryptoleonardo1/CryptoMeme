@@ -2,7 +2,7 @@ import React from 'react';
 
 const ProjectHeader = ({ meme }) => {
   return (
-    <div className="w-full px-4 pt-18"> {/* Added top padding */}
+    <div className="w-full px-4 pt-[40px]"> {/* Increased top padding significantly */}
       <div className="flex items-center justify-center gap-4">
         {meme?.logo && (
           <img 
