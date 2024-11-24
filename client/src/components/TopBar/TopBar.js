@@ -2,7 +2,7 @@ import React from 'react';
 
 const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
   return (
-    <div className="fixed top-0 left-0 right-0 bg-[#1a1b1e] shadow-md z-50">
+    <div className="w-full bg-[#1a1b1e] shadow-md">
       <div className="max-w-md mx-auto p-4">
         <div className="grid grid-cols-2 gap-4">
           {/* Left Column */}

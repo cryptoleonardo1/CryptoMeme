@@ -23,38 +23,37 @@ function App() {
 
   return (
     <div className="fixed inset-0 bg-[#1a1b1e] overflow-hidden">
-      {/* Project Header - Now at the top */}
-      <div className="absolute top-0 left-0 right-0 z-[60] bg-[#1a1b1e] pt-4 pb-2">
-        <ProjectHeader meme={currentMeme} />
-      </div>
+      <div className="fixed top-0 left-0 right-0 flex flex-col z-50">
+        {/* Project Header */}
+        <div className="w-full bg-[#1a1b1e] py-4">
+          <ProjectHeader meme={currentMeme} />
+        </div>
 
-      {/* TopBar - Now below ProjectHeader */}
-      <div className="absolute left-0 right-0 z-50" style={{ top: '80px' }}>
-        <TopBar
-          meme={currentMeme}
-          onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
-          isDetailsOpen={isDetailsOpen}
-        />
+        {/* Top Bar with Stats */}
+        <div className="w-full bg-[#1a1b1e] border-t border-[#2c2d31]">
+          <TopBar
+            meme={currentMeme}
+            onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
+            isDetailsOpen={isDetailsOpen}
+          />
+        </div>
       </div>
 
       {/* Content Container */}
-      <div className="absolute inset-0 pt-[160px] pb-[60px]">
-        <div className="h-full flex flex-col">
-          {/* Meme Card */}
-          <div className="flex-1 flex items-start justify-center">
-            <div className="w-full px-4">
-              <MemeStack
-                memes={dummyMemes}
-                onMemeChange={handleMemeChange}
-                currentMeme={currentMeme}
-              />
-            </div>
+      <div className="absolute inset-0 pt-[180px] pb-[60px]">
+        <div className="h-full flex items-start justify-center">
+          <div className="w-full px-4">
+            <MemeStack
+              memes={dummyMemes}
+              onMemeChange={handleMemeChange}
+              currentMeme={currentMeme}
+            />
           </div>
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="absolute bottom-0 left-0 right-0 z-[60]">
+      <div className="fixed bottom-0 left-0 right-0 z-50">
         <Navigation />
       </div>
 
