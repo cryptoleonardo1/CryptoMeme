@@ -1,6 +1,16 @@
 import React from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 
+const QuickStatIcon = ({ children, count, text }) => (
+  <div className="flex items-center gap-2">
+    <span className="text-xl">{children}</span>
+    <div className="flex flex-col">
+      <span className="text-gray-200 font-medium">{count}</span>
+      <span className="text-xs text-gray-400">{text}</span>
+    </div>
+  </div>
+);
+
 const MemeCard = ({ meme, onSwipe, isTop }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -49,13 +59,12 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
       onDragEnd={handleDragEnd}
       whileTap={{ cursor: 'grabbing' }}
     >
-      <div className="card bg-white rounded-xl overflow-hidden shadow-xl">
-        <div className="relative">
-          <img
-            src={meme.content}
-            alt={meme.projectName}
-            className="w-full aspect-square object-cover"
-          />
+      <div className="card rounded-xl overflow-hidden shadow-xl">
+        <img
+          src={meme.content}
+          alt={meme.projectName}
+          className="w-full aspect-square object-cover"
+        />
           
           {/* Swipe Indicators */}
           <AnimatePresence>
@@ -97,13 +106,21 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
         </div>
         
         {/* Quick Stats */}
-        <div className="p-3 bg-white">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>👍 {meme.likes || 0} Likes</span>
-            <span>⭐ {meme.score || 0} Super Likes</span>
-            <span>🔥 {meme.trending ? 'Trending' : 'New'}</span>
+        <div className="bg-gradient-to-b from-[#2c2d31] to-[#1a1b1e] border-t border-[#3c3d41]/30 p-4">
+          <div className="flex justify-between items-center">
+            <QuickStatIcon count={meme.likes || 0} text="Likes">
+              👍
+            </QuickStatIcon>
+            
+            <QuickStatIcon count={meme.superLikes || 0} text="Super Likes">
+              ⭐
+            </QuickStatIcon>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔥</span>
+              <span className="text-green-400 font-medium">New</span>
+            </div>
           </div>
-        </div>
       </div>
     </motion.div>
   );
