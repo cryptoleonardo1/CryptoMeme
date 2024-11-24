@@ -34,8 +34,11 @@ const dummyMemes = [
       price: "0.000019",
       marketCap: "8.7B",
       priceChange24h: 9.5,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+      website: "https://www.pepe.vip/",
+      priceChart: "https://www.geckoterminal.com/eth/pools/0xa43fe16908251ee70ef74718545e4fe6c5ccec9f?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://app.uniswap.org/explore/tokens/ethereum/0x6982508145454ce325ddbe47a25d4ec3d2311933",
+      twitterUrl: "https://x.com/pepecoineth"
     }
   },
   {
@@ -48,8 +51,11 @@ const dummyMemes = [
       price: "0.000019",
       marketCap: "8.7B",
       priceChange24h: 9.5,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+      website: "https://www.pepe.vip/",
+      priceChart: "https://www.geckoterminal.com/eth/pools/0xa43fe16908251ee70ef74718545e4fe6c5ccec9f?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://app.uniswap.org/explore/tokens/ethereum/0x6982508145454ce325ddbe47a25d4ec3d2311933",
+      twitterUrl: "https://x.com/pepecoineth"
     }
   },
   {
@@ -62,8 +68,12 @@ const dummyMemes = [
       price: "1.25",
       marketCap: "1.3B",
       priceChange24h: -9.6,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      website: "https://x.com/pnutsolana",
+      priceChart: "https://www.geckoterminal.com/solana/pools/8oT91ooChsr7aHTHha9oJxKTYwUhZ75tjJ6bhtiggG5Y?utm_source=coingecko&utm_medium=referral&utm_campaign=livechart",
+      buyLink: "https://raydium.io/swap/?outputCurrency=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump&inputMint=sol&outputMint=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      telegramUrl: "https://t.me/pnutportal",
+      twitterUrl: "https://x.com/pnutsolana"
     }
   },
   {
@@ -76,8 +86,11 @@ const dummyMemes = [
       price: "0.000019",
       marketCap: "8.7B",
       priceChange24h: 9.5,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+      website: "https://www.pepe.vip/",
+      priceChart: "https://www.geckoterminal.com/eth/pools/0xa43fe16908251ee70ef74718545e4fe6c5ccec9f?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://app.uniswap.org/explore/tokens/ethereum/0x6982508145454ce325ddbe47a25d4ec3d2311933",
+      twitterUrl: "https://x.com/pepecoineth"
     }
   },
   {
@@ -90,8 +103,12 @@ const dummyMemes = [
       price: "1.25",
       marketCap: "1.3B",
       priceChange24h: -9.6,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      website: "https://x.com/pnutsolana",
+      priceChart: "https://www.geckoterminal.com/solana/pools/8oT91ooChsr7aHTHha9oJxKTYwUhZ75tjJ6bhtiggG5Y?utm_source=coingecko&utm_medium=referral&utm_campaign=livechart",
+      buyLink: "https://raydium.io/swap/?outputCurrency=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump&inputMint=sol&outputMint=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      telegramUrl: "https://t.me/pnutportal",
+      twitterUrl: "https://x.com/pnutsolana"
     }
   },
   {
@@ -104,8 +121,12 @@ const dummyMemes = [
       price: "1.25",
       marketCap: "1.3B",
       priceChange24h: -9.6,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      website: "https://x.com/pnutsolana",
+      priceChart: "https://www.geckoterminal.com/solana/pools/8oT91ooChsr7aHTHha9oJxKTYwUhZ75tjJ6bhtiggG5Y?utm_source=coingecko&utm_medium=referral&utm_campaign=livechart",
+      buyLink: "https://raydium.io/swap/?outputCurrency=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump&inputMint=sol&outputMint=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      telegramUrl: "https://t.me/pnutportal",
+      twitterUrl: "https://x.com/pnutsolana"
     }
   },
   {
@@ -118,8 +139,12 @@ const dummyMemes = [
       price: "1.25",
       marketCap: "1.3B",
       priceChange24h: -9.6,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      website: "https://x.com/pnutsolana",
+      priceChart: "https://www.geckoterminal.com/solana/pools/8oT91ooChsr7aHTHha9oJxKTYwUhZ75tjJ6bhtiggG5Y?utm_source=coingecko&utm_medium=referral&utm_campaign=livechart",
+      buyLink: "https://raydium.io/swap/?outputCurrency=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump&inputMint=sol&outputMint=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      telegramUrl: "https://t.me/pnutportal",
+      twitterUrl: "https://x.com/pnutsolana"
     }
   },
   {
@@ -132,8 +157,12 @@ const dummyMemes = [
       price: "1.42",
       marketCap: "1.5B",
       priceChange24h: 1.3,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      website: "https://popcatsolana.xyz/",
+      priceChart: "https://www.geckoterminal.com/solana/pools/FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://raydium.io/swap/?outputCurrency=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr&inputMint=sol&outputMint=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      telegramUrl: "https://t.me/popcatsolana",
+      twitterUrl: "https://x.com/Popcatsolana"
     }
   },
   {
@@ -146,8 +175,12 @@ const dummyMemes = [
       price: "1.25",
       marketCap: "1.3B",
       priceChange24h: -9.6,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      website: "https://x.com/pnutsolana",
+      priceChart: "https://www.geckoterminal.com/solana/pools/8oT91ooChsr7aHTHha9oJxKTYwUhZ75tjJ6bhtiggG5Y?utm_source=coingecko&utm_medium=referral&utm_campaign=livechart",
+      buyLink: "https://raydium.io/swap/?outputCurrency=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump&inputMint=sol&outputMint=2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
+      telegramUrl: "https://t.me/pnutportal",
+      twitterUrl: "https://x.com/pnutsolana"
     }
   },
   {
@@ -160,8 +193,12 @@ const dummyMemes = [
       price: "1.42",
       marketCap: "1.5B",
       priceChange24h: 1.3,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      website: "https://popcatsolana.xyz/",
+      priceChart: "https://www.geckoterminal.com/solana/pools/FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://raydium.io/swap/?outputCurrency=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr&inputMint=sol&outputMint=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      telegramUrl: "https://t.me/popcatsolana",
+      twitterUrl: "https://x.com/Popcatsolana"
     }
   },
   {
@@ -174,8 +211,12 @@ const dummyMemes = [
       price: "1.42",
       marketCap: "1.5B",
       priceChange24h: 1.3,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      website: "https://popcatsolana.xyz/",
+      priceChart: "https://www.geckoterminal.com/solana/pools/FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://raydium.io/swap/?outputCurrency=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr&inputMint=sol&outputMint=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      telegramUrl: "https://t.me/popcatsolana",
+      twitterUrl: "https://x.com/Popcatsolana"
     }
   },
   {
@@ -188,8 +229,12 @@ const dummyMemes = [
       price: "1.42",
       marketCap: "1.5B",
       priceChange24h: 1.3,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      website: "https://popcatsolana.xyz/",
+      priceChart: "https://www.geckoterminal.com/solana/pools/FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://raydium.io/swap/?outputCurrency=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr&inputMint=sol&outputMint=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      telegramUrl: "https://t.me/popcatsolana",
+      twitterUrl: "https://x.com/Popcatsolana"
     }
   },
   {
@@ -202,8 +247,12 @@ const dummyMemes = [
       price: "1.42",
       marketCap: "1.5B",
       priceChange24h: 1.3,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      website: "https://popcatsolana.xyz/",
+      priceChart: "https://www.geckoterminal.com/solana/pools/FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://raydium.io/swap/?outputCurrency=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr&inputMint=sol&outputMint=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      telegramUrl: "https://t.me/popcatsolana",
+      twitterUrl: "https://x.com/Popcatsolana"
     }
   },
   {
@@ -216,8 +265,12 @@ const dummyMemes = [
       price: "1.42",
       marketCap: "1.5B",
       priceChange24h: 1.3,
-      buyLink: "https://raydium.io/",
-      website: "https://raydium.io/"
+      contract: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      website: "https://popcatsolana.xyz/",
+      priceChart: "https://www.geckoterminal.com/solana/pools/FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo?utm_campaign=contract_selector&utm_medium=referral&utm_source=coingecko",
+      buyLink: "https://raydium.io/swap/?outputCurrency=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr&inputMint=sol&outputMint=7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      telegramUrl: "https://t.me/popcatsolana",
+      twitterUrl: "https://x.com/Popcatsolana"
     }
   },
   // ... add all your memes
