@@ -24,7 +24,7 @@ function App() {
   return (
     <div className="fixed inset-0 bg-[#1a1b1e] overflow-hidden">
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0">
+      <div className="absolute top-0 left-0 right-0 z-50">
         <TopBar
           meme={currentMeme}
           onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
@@ -32,12 +32,13 @@ function App() {
         />
       </div>
 
-      {/* Project Header */}
-      <ProjectHeader meme={currentMeme} />
+      {/* Content Container */}
+      <div className="absolute inset-0 pt-[80px] pb-[60px] flex flex-col">
+        {/* Project Header */}
+        <ProjectHeader meme={currentMeme} />
 
-      {/* Main Content - Fixed Position */}
-      <div className="absolute inset-0 pt-[140px] pb-[60px]"> {/* Adjusted padding to account for header */}
-        <div className="h-full flex items-center justify-center">
+        {/* Main Content */}
+        <div className="flex-1 flex items-center justify-center">
           <div className="w-full px-4">
             <MemeStack
               memes={dummyMemes}
@@ -49,7 +50,7 @@ function App() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="absolute bottom-0 left-0 right-0">
+      <div className="absolute bottom-0 left-0 right-0 z-50">
         <Navigation />
       </div>
 
