@@ -1,5 +1,22 @@
 import React from 'react';
 
+const CopyIcon = () => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="16" 
+    height="16" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  </svg>
+);
+
 const DetailsPage = ({ isOpen, meme }) => {
   const handleCopyContract = async () => {
     try {
@@ -26,16 +43,17 @@ const DetailsPage = ({ isOpen, meme }) => {
         <div className="flex flex-col gap-4">
           {/* Contract Information */}
           <div className="bg-[#2c2d31] rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-2">Contract</div>
-            <div className="flex items-center gap-2">
-              <div className="text-gray-200 text-sm truncate">
+            <div className="text-gray-400 text-sm mb-2 text-center">Contract</div>
+            <div className="flex items-center gap-2 bg-[#1a1b1e] rounded px-3 py-2">
+              <div className="text-gray-200 text-sm truncate flex-1">
                 {meme?.projectDetails?.contract || 'N/A'}
               </div>
               <button
                 onClick={handleCopyContract}
-                className="text-sm text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors p-1"
+                title="Copy contract address"
               >
-                Copy
+                <CopyIcon />
               </button>
             </div>
           </div>
