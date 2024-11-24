@@ -33,22 +33,20 @@ function App() {
       </div>
 
       {/* Content Container */}
-      <div className="absolute inset-0 pt-[80px] pb-[60px]">
-        <div className="h-full flex flex-col">
-          {/* Top Space with Centered Header */}
-          <div className="flex-1 flex items-center justify-center max-h-[120px]">
+      <div className="absolute inset-0 pt-[80px] pb-[60px] flex flex-col">
+        <div className="flex flex-col items-center">
+          {/* Project Header */}
+          <div className="w-full mb-6">
             <ProjectHeader meme={currentMeme} />
           </div>
 
           {/* Meme Card */}
-          <div className="flex-[2] flex items-start justify-center">
-            <div className="w-full px-4">
-              <MemeStack
-                memes={dummyMemes}
-                onMemeChange={handleMemeChange}
-                currentMeme={currentMeme}
-              />
-            </div>
+          <div className="w-full px-4">
+            <MemeStack
+              memes={dummyMemes}
+              onMemeChange={handleMemeChange}
+              currentMeme={currentMeme}
+            />
           </div>
         </div>
       </div>
