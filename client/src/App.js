@@ -23,8 +23,13 @@ function App() {
 
   return (
     <div className="fixed inset-0 bg-[#1a1b1e] overflow-hidden">
-      {/* Top Bar - Highest z-index */}
-      <div className="absolute top-0 left-0 right-0 z-[60]">
+      {/* Project Header - Now at the top */}
+      <div className="absolute top-0 left-0 right-0 z-[60] bg-[#1a1b1e] pt-4 pb-2">
+        <ProjectHeader meme={currentMeme} />
+      </div>
+
+      {/* TopBar - Now below ProjectHeader */}
+      <div className="absolute left-0 right-0 z-50" style={{ top: '80px' }}>
         <TopBar
           meme={currentMeme}
           onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
@@ -33,15 +38,10 @@ function App() {
       </div>
 
       {/* Content Container */}
-      <div className="absolute inset-0 pt-[80px] pb-[60px]">
+      <div className="absolute inset-0 pt-[160px] pb-[60px]">
         <div className="h-full flex flex-col">
-          {/* Top Space with Centered Header */}
-          <div className="flex-1 flex items-center justify-center max-h-[120px] z-40">
-            <ProjectHeader meme={currentMeme} />
-          </div>
-
           {/* Meme Card */}
-          <div className="flex-[2] flex items-start justify-center z-30">
+          <div className="flex-1 flex items-start justify-center">
             <div className="w-full px-4">
               <MemeStack
                 memes={dummyMemes}
@@ -53,16 +53,16 @@ function App() {
         </div>
       </div>
 
+      {/* Bottom Navigation */}
+      <div className="absolute bottom-0 left-0 right-0 z-[60]">
+        <Navigation />
+      </div>
+
       {/* Details Page */}
       <DetailsPage
         isOpen={isDetailsOpen}
         meme={currentMeme}
       />
-
-      {/* Bottom Navigation - Also high z-index */}
-      <div className="absolute bottom-0 left-0 right-0 z-[60]">
-        <Navigation />
-      </div>
     </div>
   );
 }

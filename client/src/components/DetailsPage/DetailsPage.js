@@ -33,7 +33,7 @@ const DetailsPage = ({ isOpen, meme }) => {
         isOpen ? 'translate-y-0' : 'translate-y-[-120%]'
       }`}
       style={{
-        top: '140px',
+        top: '160px', // Adjusted to account for new layout
         bottom: '60px',
         backgroundColor: '#1a1b1e',
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',

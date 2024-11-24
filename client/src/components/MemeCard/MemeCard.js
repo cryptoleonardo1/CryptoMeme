@@ -97,10 +97,10 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
         </div>
         
         {/* Quick Stats */}
-        <div className="p-6 bg-silver">
+        <div className="p-3 bg-white">
           <div className="flex justify-between text-sm text-gray-600">
-            <span>👍 {meme.likes || 0}</span>
-            <span>⭐ {meme.score || 0} points</span>
+            <span>👍 {meme.likes || 0} Likes</span>
+            <span>⭐ {meme.score || 0} Super Likes</span>
             <span>🔥 {meme.trending ? 'Trending' : 'New'}</span>
           </div>
         </div>
