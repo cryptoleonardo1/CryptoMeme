@@ -23,8 +23,8 @@ function App() {
 
   return (
     <div className="fixed inset-0 bg-[#1a1b1e] overflow-hidden">
-      {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-50">
+      {/* Top Bar - Highest z-index */}
+      <div className="absolute top-0 left-0 right-0 z-[60]">
         <TopBar
           meme={currentMeme}
           onDetailsClick={() => setIsDetailsOpen(!isDetailsOpen)}
@@ -33,33 +33,36 @@ function App() {
       </div>
 
       {/* Content Container */}
-      <div className="absolute inset-0 pt-[80px] pb-[60px] flex flex-col">
-        <div className="flex flex-col items-center">
-          {/* Project Header */}
-          <div className="w-full mb-6">
+      <div className="absolute inset-0 pt-[80px] pb-[60px]">
+        <div className="h-full flex flex-col">
+          {/* Top Space with Centered Header */}
+          <div className="flex-1 flex items-center justify-center max-h-[120px] z-40">
             <ProjectHeader meme={currentMeme} />
           </div>
 
           {/* Meme Card */}
-          <div className="w-full px-4">
-            <MemeStack
-              memes={dummyMemes}
-              onMemeChange={handleMemeChange}
-              currentMeme={currentMeme}
-            />
+          <div className="flex-[2] flex items-start justify-center z-30">
+            <div className="w-full px-4">
+              <MemeStack
+                memes={dummyMemes}
+                onMemeChange={handleMemeChange}
+                currentMeme={currentMeme}
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="absolute bottom-0 left-0 right-0 z-50">
-        <Navigation />
-      </div>
-
+      {/* Details Page */}
       <DetailsPage
         isOpen={isDetailsOpen}
         meme={currentMeme}
       />
+
+      {/* Bottom Navigation - Also high z-index */}
+      <div className="absolute bottom-0 left-0 right-0 z-[60]">
+        <Navigation />
+      </div>
     </div>
   );
 }
