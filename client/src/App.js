@@ -1,8 +1,8 @@
-// App.js
 import React, { useState, useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
 import TopBar from './components/TopBar/TopBar';
+import ProjectHeader from './components/ProjectHeader/ProjectHeader';
 import MemeStack from './components/MemeStack/MemeStack';
 import Navigation from './components/Navigation/Navigation';
 import DetailsPage from './components/DetailsPage/DetailsPage';
@@ -32,8 +32,11 @@ function App() {
         />
       </div>
 
+      {/* Project Header */}
+      <ProjectHeader meme={currentMeme} />
+
       {/* Main Content - Fixed Position */}
-      <div className="absolute inset-0 pt-[110px] pb-[60px]">
+      <div className="absolute inset-0 pt-[140px] pb-[60px]"> {/* Adjusted padding to account for header */}
         <div className="h-full flex items-center justify-center">
           <div className="w-full px-4">
             <MemeStack
