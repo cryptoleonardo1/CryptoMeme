@@ -34,8 +34,10 @@ function App() {
 
       {/* Content Container */}
       <div className="absolute inset-0 pt-[80px] pb-[60px] flex flex-col">
-        {/* Project Header */}
-        <ProjectHeader meme={currentMeme} />
+        {/* Spacer for Project Header */}
+        <div className="h-[100px]"> {/* Increased height and added margin */}
+          <ProjectHeader meme={currentMeme} />
+        </div>
 
         {/* Main Content */}
         <div className="flex-1 flex items-center justify-center">

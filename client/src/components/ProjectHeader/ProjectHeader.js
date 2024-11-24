@@ -2,13 +2,13 @@ import React from 'react';
 
 const ProjectHeader = ({ meme }) => {
   return (
-    <div className="w-full px-4 py-6">
+    <div className="w-full px-4 pt-8"> {/* Added top padding */}
       <div className="flex items-center justify-center gap-4">
         {meme?.logo && (
           <img 
             src={meme.logo}
             alt={meme.projectName || ''}
-            className="w-14 h-14 rounded-full bg-gray-800"
+            className="w-14 h-14 rounded-full bg-gray-800 object-cover"
           />
         )}
         <h1 className="text-2xl font-bold text-white">
