@@ -3,8 +3,7 @@ import MemeCard from '../MemeCard/MemeCard';
 
 const MemeStack = ({ memes, onMemeChange }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
-  // We'll keep lastDirection but use it for transition timing
-  const [lastDirection, setLastDirection] = React.useState(null);
+  const [exiting, setExiting] = React.useState(false);
 
   React.useEffect(() => {
     if (memes[currentIndex]) {
@@ -13,23 +12,21 @@ const MemeStack = ({ memes, onMemeChange }) => {
   }, [currentIndex, memes, onMemeChange]);
 
   const handleSwipe = (direction) => {
-    setLastDirection(direction); // This is used to coordinate card transitions
-    
-    // Delay the index change until after the swipe animation
-    setTimeout(() => {
-      setCurrentIndex(prevIndex => {
-        const newIndex = prevIndex + 1;
-        if (newIndex < memes.length) {
-          onMemeChange(memes[newIndex]);
-        }
-        return newIndex;
-      });
-    }, 200); // Match this with your swipe animation duration
-
-    // Reset lastDirection after swipe animation completes
-    setTimeout(() => {
-      setLastDirection(null);
-    }, 1000);
+    if (!exiting) {
+      setExiting(true);
+      
+      // Show the swipe animation for a moment before changing cards
+      setTimeout(() => {
+        setCurrentIndex(prevIndex => {
+          const newIndex = prevIndex + 1;
+          if (newIndex < memes.length) {
+            onMemeChange(memes[newIndex]);
+          }
+          return newIndex;
+        });
+        setExiting(false);
+      }, 500); // Increased delay for better visibility of the swipe indicator
+    }
   };
 
   return (
@@ -47,14 +44,13 @@ const MemeStack = ({ memes, onMemeChange }) => {
             style={{
               transform: `scale(${isTop ? 1 : 0.95}) translateY(${isTop ? 0 : 8}px)`,
               opacity: isTop ? 1 : 0.8,
-              transition: `all ${lastDirection ? '0.2s' : '0s'} ease-out`,
+              transition: 'all 0.3s ease-out',
             }}
           >
             <MemeCard
               meme={meme}
               onSwipe={handleSwipe}
               isTop={isTop}
-              key={`${meme.id}-${lastDirection}`} // Force re-render on direction change
             />
           </div>
         );
