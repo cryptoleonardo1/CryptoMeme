@@ -3,28 +3,53 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MemeCard from '../MemeCard/MemeCard';
 
 const MemeStack = ({ memes, onMemeChange }) => {
-  const [currentIndex, setCurrentIndex] = React.useState(0);
+  // Keep track of current and next meme
+  const [currentMeme, setCurrentMeme] = React.useState(null);
+  const [nextMeme, setNextMeme] = React.useState(null);
   const [lastSwipe, setLastSwipe] = React.useState(null);
   const [isAnimating, setIsAnimating] = React.useState(false);
 
-  React.useEffect(() => {
-    if (memes[currentIndex]) {
-      onMemeChange(memes[currentIndex]);
+  // Function to select a random meme based on weight
+  const getWeightedRandomMeme = () => {
+    // Calculate total weight
+    const totalWeight = memes.reduce((sum, meme) => sum + (meme.weight || 1), 0);
+    
+    // Generate a random number between 0 and total weight
+    let random = Math.random() * totalWeight;
+    
+    // Find the meme that corresponds to this random value
+    for (const meme of memes) {
+      random -= (meme.weight || 1);
+      if (random <= 0) {
+        return meme;
+      }
     }
-  }, [currentIndex, memes, onMemeChange]);
+    
+    // Fallback to first meme (shouldn't happen unless array is empty)
+    return memes[0];
+  };
+
+  // Initialize current and next memes
+  React.useEffect(() => {
+    if (memes.length > 0 && !currentMeme) {
+      const firstMeme = getWeightedRandomMeme();
+      setCurrentMeme(firstMeme);
+      onMemeChange(firstMeme);
+      
+      const secondMeme = getWeightedRandomMeme();
+      setNextMeme(secondMeme);
+    }
+  }, [memes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSwipe = (direction) => {
     if (!isAnimating) {
       setIsAnimating(true);
       setLastSwipe(direction);
 
-      setCurrentIndex(prevIndex => {
-        const newIndex = prevIndex + 1;
-        if (newIndex < memes.length) {
-          onMemeChange(memes[newIndex]);
-        }
-        return newIndex;
-      });
+      // Move to next meme and select new next meme
+      setCurrentMeme(nextMeme);
+      onMemeChange(nextMeme);
+      setNextMeme(getWeightedRandomMeme());
 
       setTimeout(() => {
         setLastSwipe(null);
@@ -115,62 +140,48 @@ const MemeStack = ({ memes, onMemeChange }) => {
 
       {/* Cards */}
       <AnimatePresence>
-        {memes.map((meme, index) => {
-          if (index < currentIndex) return null;
-          if (index > currentIndex + 1) return null;
-          
-          const isTop = index === currentIndex;
-          
-          return (
-            <motion.div
-              key={meme.id}
-              className={`absolute inset-0 ${isTop ? 'z-20' : 'z-10'}`}
-              initial={isTop ? { scale: 0.95, y: 8, opacity: 0.8 } : { scale: 0.95, y: 8 }}
-              animate={isTop ? { scale: 1, y: 0, opacity: 1 } : { scale: 0.95, y: 8 }}
-              exit={{ 
-                x: lastSwipe === 'right' ? 1000 : lastSwipe === 'left' ? -1000 : 0,
-                y: lastSwipe === 'super' ? -1000 : 0,
-                opacity: 0,
-                scale: 0.8,
-                transition: { duration: 0.2 }
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30
-              }}
-            >
-              <MemeCard
-                meme={meme}
-                onSwipe={handleSwipe}
-                isTop={isTop}
-              />
-            </motion.div>
-          );
-        })}
+        {currentMeme && (
+          <motion.div
+            key={currentMeme.id + "-current"}
+            className="absolute inset-0 z-20"
+            initial={{ scale: 0.95, y: 8, opacity: 0.8 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ 
+              x: lastSwipe === 'right' ? 1000 : lastSwipe === 'left' ? -1000 : 0,
+              y: lastSwipe === 'super' ? -1000 : 0,
+              opacity: 0,
+              scale: 0.8,
+              transition: { duration: 0.2 }
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 30
+            }}
+          >
+            <MemeCard
+              meme={currentMeme}
+              onSwipe={handleSwipe}
+              isTop={true}
+            />
+          </motion.div>
+        )}
+        
+        {nextMeme && (
+          <motion.div
+            key={nextMeme.id + "-next"}
+            className="absolute inset-0 z-10"
+            initial={{ scale: 0.95, y: 8 }}
+            animate={{ scale: 0.95, y: 8 }}
+          >
+            <MemeCard
+              meme={nextMeme}
+              onSwipe={() => {}}
+              isTop={false}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
-      
-      {currentIndex >= memes.length && (
-        <motion.div 
-          className="absolute inset-0 flex items-center justify-center"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No more memes!</h3>
-            <button
-              onClick={() => {
-                setCurrentIndex(0);
-                onMemeChange(memes[0]);
-              }}
-              className="btn-primary"
-            >
-              Start Over
-            </button>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 };

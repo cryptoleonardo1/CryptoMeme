@@ -1,7 +1,7 @@
-// Create a new folder structure:
-// client/src/assets/memes/
+//dummyMemes.js
 
-// Then update dummyMemes.js like this:
+// client/src/assets/memes/
+// ... import all your memes
 import meme1 from '../assets/memes/meme1.png';
 import meme2 from '../assets/memes/meme2.png';
 import meme3 from '../assets/memes/meme3.png';
@@ -16,8 +16,9 @@ import meme11 from '../assets/memes/meme11.png';
 import meme12 from '../assets/memes/meme12.png';
 import meme13 from '../assets/memes/meme13.png';
 import meme14 from '../assets/memes/meme14.png';
-// ... import all your memes
 
+// client/src/assets/logos/
+// ... import all your logos
 import logo1 from '../assets/logos/logo1.png';
 import logo2 from '../assets/logos/logo2.png';
 import logo3 from '../assets/logos/logo3.png';
@@ -28,6 +29,7 @@ const dummyMemes = [
     id: 1,
     projectName: "PEPE",
     content: meme1,
+    weight: 1, // Higher number = higher chance of being shown
     logo: logo1,
     projectDetails: {
       network: "Ethereum",
@@ -43,7 +45,7 @@ const dummyMemes = [
   },
   {
     id: 2,
-    projectName: "PEPE",
+    projectName: "PEPE NoWeight",
     content: meme2,
     logo: logo1,
     projectDetails: {
@@ -62,6 +64,7 @@ const dummyMemes = [
     id: 3,
     projectName: "PNUT",
     content: meme3,
+    weight: 2,
     logo: logo3,
     projectDetails: {
       network: "Solana",
@@ -80,6 +83,7 @@ const dummyMemes = [
     id: 4,
     projectName: "PEPE",
     content: meme4,
+    weight: 1,
     logo: logo1,
     projectDetails: {
       network: "Ethereum",
@@ -97,6 +101,7 @@ const dummyMemes = [
     id: 5,
     projectName: "PNUT",
     content: meme5,
+    weight: 2,
     logo: logo3,
     projectDetails: {
       network: "Solana",
@@ -115,6 +120,7 @@ const dummyMemes = [
     id: 6,
     projectName: "PNUT",
     content: meme6,
+    weight: 2,
     logo: logo3,
     projectDetails: {
       network: "Solana",
@@ -131,7 +137,7 @@ const dummyMemes = [
   },
   {
     id: 7,
-    projectName: "PNUT",
+    projectName: "PNUT NoWeight",
     content: meme7,
     logo: logo3,
     projectDetails: {
@@ -151,6 +157,7 @@ const dummyMemes = [
     id: 8,
     projectName: "POPCAT",
     content: meme8,
+    weight: 3,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -167,7 +174,7 @@ const dummyMemes = [
   },
   {
     id: 9,
-    projectName: "PNUT",
+    projectName: "PNUT-NoWeight",
     content: meme9,
     logo: logo3,
     projectDetails: {
@@ -187,6 +194,7 @@ const dummyMemes = [
     id: 10,
     projectName: "POPCAT",
     content: meme10,
+    weight: 3,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -205,6 +213,7 @@ const dummyMemes = [
     id: 11,
     projectName: "POPCAT",
     content: meme11,
+    weight: 3,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -223,6 +232,7 @@ const dummyMemes = [
     id: 12,
     projectName: "POPCAT",
     content: meme12,
+    weight: 3,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -241,6 +251,7 @@ const dummyMemes = [
     id: 13,
     projectName: "POPCAT",
     content: meme13,
+    weight: 3,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -259,6 +270,7 @@ const dummyMemes = [
     id: 14,
     projectName: "POPCAT",
     content: meme14,
+    weight: 3,
     logo: logo2,
     projectDetails: {
       network: "Solana",
