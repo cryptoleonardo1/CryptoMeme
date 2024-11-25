@@ -3,7 +3,7 @@ import MemeCard from '../MemeCard/MemeCard';
 
 const MemeStack = ({ memes, onMemeChange }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [lastDirection, setLastDirection] = React.useState(null);
+  const [setLastDirection] = React.useState(null);
 
   React.useEffect(() => {
     if (memes[currentIndex]) {
@@ -21,7 +21,6 @@ const MemeStack = ({ memes, onMemeChange }) => {
       return newIndex;
     });
 
-    // Handle different swipe actions
     switch (direction) {
       case 'right':
         console.log('Liked', memes[currentIndex].projectName);
@@ -43,31 +42,12 @@ const MemeStack = ({ memes, onMemeChange }) => {
 
   return (
     <div className="relative max-w-[calc(100vw-32px)] mx-auto aspect-square">
-      {/* Direction Indicators */}
-      {lastDirection && (
-        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          {lastDirection === 'right' && (
-            <div className="text-4xl font-bold text-green-500 transform rotate-[-30deg]">
-              LIKE
-            </div>
-          )}
-          {lastDirection === 'left' && (
-            <div className="text-4xl font-bold text-red-500 transform rotate-[30deg]">
-              NOPE
-            </div>
-          )}
-          {lastDirection === 'super' && (
-            <div className="text-4xl font-bold text-blue-500">
-              SUPER LIKE
-            </div>
-          )}
-        </div>
-      )}
-      
       {memes.map((meme, index) => {
         if (index < currentIndex) return null;
         if (index > currentIndex + 1) return null;
+        
         const isTop = index === currentIndex;
+        
         return (
           <div
             key={meme.id}
