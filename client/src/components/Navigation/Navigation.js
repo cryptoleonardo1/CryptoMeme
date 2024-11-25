@@ -1,20 +1,14 @@
 import React from 'react';
 
-const Navigation = () => {
-  const [activeTab, setActiveTab] = React.useState('memes');
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-  };
-
+const Navigation = ({ activeTab, onTabChange }) => {
   return (
     <div className="w-full px-4 py-3 bg-gradient-to-b from-[#2c2d31] to-[#1a1b1e] border-t border-[#3c3d41]/30 backdrop-blur-sm">
       <div className="max-w-md mx-auto h-full flex justify-around items-center">
         <button
-          onClick={() => handleTabChange('memes')}
+          onClick={() => onTabChange('memes')}
           className={`flex flex-col items-center transition-all ${
-            activeTab === 'memes' 
-              ? 'text-[#FF3366] scale-110 transform duration-200' 
+            activeTab === 'memes'
+              ? 'text-[#FF3366] scale-110 transform duration-200'
               : 'text-gray-400 hover:text-gray-300'
           }`}
         >
@@ -36,10 +30,10 @@ const Navigation = () => {
         </button>
 
         <button
-          onClick={() => handleTabChange('tasks')}
+          onClick={() => onTabChange('tasks')}
           className={`flex flex-col items-center transition-all ${
-            activeTab === 'tasks' 
-              ? 'text-[#FF3366] scale-110 transform duration-200' 
+            activeTab === 'tasks'
+              ? 'text-[#FF3366] scale-110 transform duration-200'
               : 'text-gray-400 hover:text-gray-300'
           }`}
         >
@@ -61,10 +55,35 @@ const Navigation = () => {
         </button>
 
         <button
-          onClick={() => handleTabChange('profile')}
+          onClick={() => onTabChange('ranks')}
           className={`flex flex-col items-center transition-all ${
-            activeTab === 'profile' 
-              ? 'text-[#FF3366] scale-110 transform duration-200' 
+            activeTab === 'ranks'
+              ? 'text-[#FF3366] scale-110 transform duration-200'
+              : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-7 w-7"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          <span className="text-xs mt-1 font-medium">Ranks</span>
+        </button>
+
+        <button
+          onClick={() => onTabChange('profile')}
+          className={`flex flex-col items-center transition-all ${
+            activeTab === 'profile'
+              ? 'text-[#FF3366] scale-110 transform duration-200'
               : 'text-gray-400 hover:text-gray-300'
           }`}
         >
