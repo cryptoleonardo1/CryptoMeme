@@ -1,187 +1,115 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import MemeCard from '../MemeCard/MemeCard';
 
 const MemeStack = ({ memes, onMemeChange }) => {
-  // Keep track of current and next meme
-  const [currentMeme, setCurrentMeme] = React.useState(null);
-  const [nextMeme, setNextMeme] = React.useState(null);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
   const [lastSwipe, setLastSwipe] = React.useState(null);
   const [isAnimating, setIsAnimating] = React.useState(false);
 
-  // Function to select a random meme based on weight
-  const getWeightedRandomMeme = () => {
-    // Calculate total weight
-    const totalWeight = memes.reduce((sum, meme) => sum + (meme.weight || 1), 0);
-    
-    // Generate a random number between 0 and total weight
-    let random = Math.random() * totalWeight;
-    
-    // Find the meme that corresponds to this random value
-    for (const meme of memes) {
-      random -= (meme.weight || 1);
-      if (random <= 0) {
-        return meme;
-      }
-    }
-    
-    // Fallback to first meme (shouldn't happen unless array is empty)
-    return memes[0];
-  };
-
-  // Initialize current and next memes
   React.useEffect(() => {
-    if (memes.length > 0 && !currentMeme) {
-      const firstMeme = getWeightedRandomMeme();
-      setCurrentMeme(firstMeme);
-      onMemeChange(firstMeme);
-      
-      const secondMeme = getWeightedRandomMeme();
-      setNextMeme(secondMeme);
+    if (memes[currentIndex]) {
+      onMemeChange(memes[currentIndex]);
     }
-  }, [memes]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentIndex, memes, onMemeChange]);
 
   const handleSwipe = (direction) => {
     if (!isAnimating) {
       setIsAnimating(true);
       setLastSwipe(direction);
 
-      // Move to next meme and select new next meme
-      setCurrentMeme(nextMeme);
-      onMemeChange(nextMeme);
-      setNextMeme(getWeightedRandomMeme());
+      // Immediately update to next card
+      setCurrentIndex(prevIndex => {
+        const newIndex = prevIndex + 1;
+        if (newIndex < memes.length) {
+          onMemeChange(memes[newIndex]);
+        }
+        return newIndex;
+      });
 
+      // Clear the swipe indicator after a delay
       setTimeout(() => {
         setLastSwipe(null);
         setIsAnimating(false);
-      }, 800);
-    }
-  };
-
-  // Animation variants for the swipe indicator
-  const indicatorVariants = {
-    initial: {
-      opacity: 0,
-      scale: 0.5,
-      y: 20
-    },
-    animate: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        duration: 0.2,
-        ease: [0.4, 0, 0.2, 1]
-      }
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.8,
-      y: -20,
-      transition: {
-        duration: 0.2,
-        ease: [0.4, 0, 1, 1]
-      }
+      }, 800); // Duration for showing the indicator
     }
   };
 
   return (
     <div className="relative max-w-[calc(100vw-32px)] mx-auto aspect-square">
-      {/* Swipe Indicator with enhanced animations */}
-      <AnimatePresence>
-        {lastSwipe && (
-          <motion.div 
-            className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none"
-            variants={indicatorVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
+      {/* Swipe Indicator */}
+      {lastSwipe && (
+        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+          <div 
+            className={`px-8 py-4 rounded-2xl border-4 border-white shadow-xl transform transition-all duration-200 ${
+              lastSwipe === 'right' ? 'bg-green-500/90 rotate-12' :
+              lastSwipe === 'left' ? 'bg-red-500/90 -rotate-12' :
+              'bg-blue-500/90'
+            }`}
           >
-            <motion.div 
-              className={`px-8 py-4 rounded-2xl border-4 border-white shadow-xl backdrop-blur-sm ${
-                lastSwipe === 'right' ? 'bg-green-500/90' :
-                lastSwipe === 'left' ? 'bg-red-500/90' :
-                'bg-blue-500/90'
-              }`}
-              animate={{
-                rotate: lastSwipe === 'right' ? 12 : lastSwipe === 'left' ? -12 : 0,
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 0.3,
-                ease: "easeOut",
-                scale: {
-                  duration: 0.2,
-                  times: [0, 0.5, 1]
-                }
-              }}
-            >
+            {lastSwipe === 'right' && (
               <div className="text-4xl font-bold text-white flex items-center gap-3">
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  {lastSwipe === 'right' ? 'LIKE' : lastSwipe === 'left' ? 'NOPE' : 'SUPER'}
-                </motion.span>
-                <motion.span 
-                  className="text-5xl"
-                  initial={{ opacity: 0, scale: 0.5, rotate: -180 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                >
-                  {lastSwipe === 'right' ? '👍' : lastSwipe === 'left' ? '👎' : '⭐'}
-                </motion.span>
+                <span>LIKE</span>
+                <span className="text-5xl">👍</span>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            )}
+            {lastSwipe === 'left' && (
+              <div className="text-4xl font-bold text-white flex items-center gap-3">
+                <span>NOPE</span>
+                <span className="text-5xl">👎</span>
+              </div>
+            )}
+            {lastSwipe === 'super' && (
+              <div className="text-4xl font-bold text-white flex items-center gap-3">
+                <span>SUPER</span>
+                <span className="text-5xl">⭐</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Cards */}
-      <AnimatePresence>
-        {currentMeme && (
-          <motion.div
-            key={currentMeme.id + "-current"}
-            className="absolute inset-0 z-20"
-            initial={{ scale: 0.95, y: 8, opacity: 0.8 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ 
-              x: lastSwipe === 'right' ? 1000 : lastSwipe === 'left' ? -1000 : 0,
-              y: lastSwipe === 'super' ? -1000 : 0,
-              opacity: 0,
-              scale: 0.8,
-              transition: { duration: 0.2 }
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30
-            }}
-          >
-            <MemeCard
-              meme={currentMeme}
-              onSwipe={handleSwipe}
-              isTop={true}
-            />
-          </motion.div>
-        )}
+      {memes.map((meme, index) => {
+        if (index < currentIndex) return null;
+        if (index > currentIndex + 1) return null;
         
-        {nextMeme && (
-          <motion.div
-            key={nextMeme.id + "-next"}
-            className="absolute inset-0 z-10"
-            initial={{ scale: 0.95, y: 8 }}
-            animate={{ scale: 0.95, y: 8 }}
+        const isTop = index === currentIndex;
+        
+        return (
+          <div
+            key={meme.id}
+            className={`absolute inset-0 ${isTop ? 'z-20' : 'z-10'}`}
+            style={{
+              transform: `scale(${isTop ? 1 : 0.95}) translateY(${isTop ? 0 : 8}px)`,
+              opacity: isTop ? 1 : 0.8,
+              transition: 'all 0.3s ease-out',
+            }}
           >
             <MemeCard
-              meme={nextMeme}
-              onSwipe={() => {}}
-              isTop={false}
+              meme={meme}
+              onSwipe={handleSwipe}
+              isTop={isTop}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        );
+      })}
+      
+      {currentIndex >= memes.length && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">No more memes!</h3>
+            <button
+              onClick={() => {
+                setCurrentIndex(0);
+                onMemeChange(memes[0]);
+              }}
+              className="btn-primary"
+            >
+              Start Over
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
