@@ -18,7 +18,6 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
   const opacity = useTransform(x, [-100, -50, 0, 50, 100], [0, 1, 1, 1, 0]);
   const scale = useTransform(y, [-50, 0, 50], [0.9, 1, 0.9]);
 
-  // Get current swipe direction for displaying the right indicator
   const getSwipeDirection = () => {
     const xValue = x.get();
     const yValue = y.get();
@@ -47,6 +46,80 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
     }
   };
 
+  const SwipeIndicator = ({ type }) => {
+    const config = {
+      right: {
+        color: 'rgb(34 197 94)',
+        text: 'LIKE',
+        emoji: '👍',
+        rotation: '12deg',
+        initialX: -100,
+        exitX: 100,
+      },
+      left: {
+        color: 'rgb(239 68 68)',
+        text: 'NOPE',
+        emoji: '👎',
+        rotation: '-12deg',
+        initialX: 100,
+        exitX: -100,
+      },
+      super: {
+        color: 'rgb(59 130 246)',
+        text: 'SUPER',
+        emoji: '⭐',
+        rotation: '0deg',
+        initialY: 100,
+        exitY: -100,
+      },
+    };
+
+    const { color, text, emoji, rotation, initialX, exitX, initialY, exitY } = config[type];
+
+    return (
+      <motion.div
+        initial={{ 
+          opacity: 0, 
+          scale: 0.5, 
+          x: initialX || 0, 
+          y: initialY || 0 
+        }}
+        animate={{ 
+          opacity: 1, 
+          scale: 1, 
+          x: 0, 
+          y: 0 
+        }}
+        exit={{ 
+          opacity: 0, 
+          scale: 0.5, 
+          x: exitX || 0, 
+          y: exitY || 0 
+        }}
+        transition={{ duration: 0.2 }}
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        style={{ perspective: '1000px' }}
+      >
+        <div 
+          className="px-12 py-8 rounded-3xl shadow-2xl border-8 flex items-center justify-center transform"
+          style={{
+            backgroundColor: `${color}dd`,
+            borderColor: 'white',
+            transform: `rotate(${rotation}) scale(1.2)`,
+            boxShadow: `0 25px 50px -12px ${color}66`,
+          }}
+        >
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-8xl">{emoji}</span>
+            <span className="text-6xl font-bold text-white tracking-wider" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+              {text}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
   return (
     <motion.div
       className="absolute w-full"
@@ -64,61 +137,10 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
           className="w-full aspect-square object-cover"
         />
           
-        {/* Enhanced Swipe Indicators */}
+        {/* Swipe Indicators */}
         <AnimatePresence>
-          {isTop && (
-            <>
-              {getSwipeDirection() === 'right' && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5, x: -50 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.5, x: 50 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute inset-0 flex items-center justify-center"
-                >
-                  <div className="bg-green-500/80 backdrop-blur-sm px-8 py-4 rounded-2xl border-4 border-white shadow-lg transform rotate-12">
-                    <div className="text-4xl font-bold text-white flex items-center gap-3">
-                      <span>LIKE</span>
-                      <span className="text-5xl">👍</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              
-              {getSwipeDirection() === 'left' && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5, x: 50 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.5, x: -50 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute inset-0 flex items-center justify-center"
-                >
-                  <div className="bg-red-500/80 backdrop-blur-sm px-8 py-4 rounded-2xl border-4 border-white shadow-lg transform -rotate-12">
-                    <div className="text-4xl font-bold text-white flex items-center gap-3">
-                      <span>NOPE</span>
-                      <span className="text-5xl">👎</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              
-              {getSwipeDirection() === 'super' && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5, y: 50 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.5, y: -50 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute inset-0 flex items-center justify-center"
-                >
-                  <div className="bg-blue-500/80 backdrop-blur-sm px-8 py-4 rounded-2xl border-4 border-white shadow-lg">
-                    <div className="text-4xl font-bold text-white flex items-center gap-3">
-                      <span>SUPER</span>
-                      <span className="text-5xl">⭐</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </>
+          {isTop && getSwipeDirection() && (
+            <SwipeIndicator type={getSwipeDirection()} />
           )}
         </AnimatePresence>
 
@@ -135,7 +157,7 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
             
             <div className="flex items-center gap-2">
               <span className="text-xl">🔥</span>
-              <span className="text-green-400 font-medium">New</span>
+              <span className="text-green-400 font-medium">Hot</span>
             </div>
           </div>
         </div>
