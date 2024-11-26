@@ -12,6 +12,24 @@ import RanksPage from './components/RanksPage';
 import dummyMemes from './data/dummyMemes';
 import { priceService } from './services/priceService';
 
+// Loading Screen Component (included in App.js for simplicity)
+const LoadingScreen = () => {
+  return (
+    <div className="fixed inset-0 bg-[#1a1b1e] flex flex-col items-center justify-center">
+      {/* You can replace this div with your image once you have it */}
+      <div className="mb-8">
+        <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+      <div className="text-center px-4">
+        <div className="w-48 h-2 bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-full bg-green-500 animate-load-progress" />
+        </div>
+        <p className="text-gray-400 mt-4">Loading market data...</p>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('memes');
@@ -24,18 +42,25 @@ function App() {
 
   useEffect(() => {
     async function initializeApp() {
-      WebApp.ready();
-      WebApp.expand();
-      
       try {
-        await priceService.initializeData();
+        // Initialize Telegram WebApp
+        WebApp.ready();
+        WebApp.expand();
+
+        // Load initial price data
+        console.log('Starting to load price data...');
+        const success = await priceService.initializeData();
+        console.log('Price data load completed:', success);
       } catch (error) {
-        console.warn('Failed to load initial price data:', error);
+        console.error('Error during initialization:', error);
       } finally {
-        setIsLoading(false);
+        // Ensure minimum loading time of 1.5 seconds for better UX
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1500);
       }
     }
-    
+
     initializeApp();
   }, []);
 
@@ -82,24 +107,15 @@ function App() {
             </div>
 
             {/* Details Page */}
-            <DetailsPage
-              isOpen={isDetailsOpen}
-              meme={currentMeme}
-            />
+            <DetailsPage isOpen={isDetailsOpen} meme={currentMeme} />
           </>
         );
     }
   };
 
+  // Show loading screen while initializing
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-[#1a1b1e] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading market data...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
