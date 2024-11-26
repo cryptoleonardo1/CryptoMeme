@@ -1,112 +1,45 @@
 // src/services/priceService.js
 class PriceService {
     constructor() {
-      // Using proxy endpoint instead of direct CoinGecko URL
       this.baseUrl = '/api/coingecko';
       
-      // Token mappings remain the same
+      // Token mappings remain the same as before
       this.tokens = {
-        // Pepe tokens (IDs: 1, 2, 4)
-        1: {
-          id: 'pepe',
-          network: 'ethereum'
-        },
-        2: {
-          id: 'pepe',
-          network: 'ethereum'
-        },
-        4: {
-          id: 'pepe',
-          network: 'ethereum'
-        },
-
-        // Pnut tokens (IDs: 3, 5, 6, 7, 9)
-        3: {
-          id: 'peanut-the-squirrel',
-          network: 'solana'
-        },
-        5: {
-          id: 'peanut-the-squirrel',
-          network: 'solana'
-        },
-        6: {
-          id: 'peanut-the-squirrel',
-          network: 'solana'
-        },
-        7: {
-          id: 'peanut-the-squirrel',
-          network: 'solana'
-        },
-        9: {
-          id: 'peanut-the-squirrel',
-          network: 'solana'
-        },
-
-        // Popcat tokens (IDs: 8, 10, 11, 12, 13, 14)
-        8: {
-          id: 'popcat',
-          network: 'solana'
-        },
-        10: {
-          id: 'popcat',
-          network: 'solana'
-        },
-        11: {
-          id: 'popcat',
-          network: 'solana'
-        },
-        12: {
-          id: 'popcat',
-          network: 'solana'
-        },
-        13: {
-          id: 'popcat',
-          network: 'solana'
-        },
-        14: {
-          id: 'popcat',
-          network: 'solana'
-        },
-
-        // Other tokens
-        15: {
-          id: 'shiba-inu',
-          network: 'ethereum'
-        },
-        16: {
-          id: 'bonk',
-          network: 'solana'
-        },
-        17: {
-          id: 'dogwifcoin',
-          network: 'solana'
-        },
-        18: {
-          id: 'floki',
-          network: 'ethereum'
-        },
-        19: {
-          id: 'based-brett',
-          network: 'base'
-        },
-        20: {
-          id: 'goatseus-maximus',
-          network: 'solana'
-        }
+        1: { id: 'pepe', network: 'ethereum' },
+        2: { id: 'pepe', network: 'ethereum' },
+        3: { id: 'peanut-the-squirrel', network: 'solana' },
+        4: { id: 'pepe', network: 'ethereum' },
+        5: { id: 'peanut-the-squirrel', network: 'solana' },
+        6: { id: 'peanut-the-squirrel', network: 'solana' },
+        7: { id: 'peanut-the-squirrel', network: 'solana' },
+        8: { id: 'popcat', network: 'solana' },
+        9: { id: 'peanut-the-squirrel', network: 'solana' },
+        10: { id: 'popcat', network: 'solana' },
+        11: { id: 'popcat', network: 'solana' },
+        12: { id: 'popcat', network: 'solana' },
+        13: { id: 'popcat', network: 'solana' },
+        14: { id: 'popcat', network: 'solana' },
+        15: { id: 'shiba-inu', network: 'ethereum' },
+        16: { id: 'bonk', network: 'solana' },
+        17: { id: 'dogwifcoin', network: 'solana' },
+        18: { id: 'floki', network: 'ethereum' },
+        19: { id: 'based-brett', network: 'base' },
+        20: { id: 'goatseus-maximus', network: 'solana' }
       };
   
       this.cache = new Map();
-      this.cacheTimeout = 300000; // 5 minutes cache
+      this.cacheTimeout = 60000; // 1 minute cache
       this.lastFetchTime = 0;
-      this.minFetchInterval = 10000; // 10 seconds between API calls
+      this.minFetchInterval = 6000; // 6 seconds between API calls
     }
   
     async getTokenDataByMemeId(memeId) {
       const token = this.tokens[memeId];
+      const numericMemeId = Number(memeId);
       
       if (!token) {
         console.log(`No CoinGecko mapping for meme ID: ${memeId}, using local data`);
-        return this.getFallbackDataForToken(memeId);
+        return this.getFallbackDataForToken(numericMemeId);
       }
   
       try {
@@ -122,10 +55,10 @@ class PriceService {
         const timeSinceLastFetch = now - this.lastFetchTime;
         if (timeSinceLastFetch < this.minFetchInterval) {
           console.log('Rate limit: using cached or fallback data');
-          return cachedData?.data || this.getFallbackDataForToken(memeId);
+          return cachedData?.data || this.getFallbackDataForToken(numericMemeId);
         }
   
-        // Fetch new data using proxy
+        // Fetch new data
         console.log(`Fetching fresh data for ${token.id}`);
         this.lastFetchTime = now;
 
@@ -133,11 +66,8 @@ class PriceService {
         console.log('Fetching from:', this.baseUrl + endpoint);
   
         const response = await fetch(this.baseUrl + endpoint);
-        
+  
         if (!response.ok) {
-          console.error('API Response not OK:', response.status, response.statusText);
-          const text = await response.text();
-          console.error('Response text:', text);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
   
@@ -145,15 +75,14 @@ class PriceService {
         console.log('Received data:', data);
         
         if (!data[token.id]) {
-          console.error('No data for token:', token.id);
           throw new Error('No data returned from CoinGecko');
         }
   
         const tokenData = data[token.id];
         const formatted = {
-          price: this.formatPrice(tokenData.usd),
-          marketCap: this.formatMarketCap(tokenData.usd_market_cap),
-          priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
+          price: this.formatPrice(tokenData.usd || 0),
+          marketCap: this.formatMarketCap(tokenData.usd_market_cap || 0),
+          priceChange24h: this.formatPriceChange(tokenData.usd_24h_change || 0),
           timestamp: now
         };
   
@@ -168,19 +97,18 @@ class PriceService {
         return formatted;
       } catch (error) {
         console.error(`Error fetching ${token.id}:`, error);
-        return this.getFallbackDataForToken(memeId);
+        return this.getFallbackDataForToken(numericMemeId);
       }
     }
   
     getFallbackDataForToken(memeId) {
       try {
-        // Import dummyMemes data
         const dummyMemes = require('../data/dummyMemes').default;
-        const meme = dummyMemes.find(m => m.id === Number(memeId));
+        const meme = dummyMemes.find(m => m.id === memeId);
         
         if (meme?.projectDetails) {
           const data = {
-            price: meme.projectDetails.price,
+            price: this.formatPrice(meme.projectDetails.price),
             marketCap: meme.projectDetails.marketCap,
             priceChange24h: Number(meme.projectDetails.priceChange24h) || 0,
             timestamp: Date.now()
@@ -200,7 +128,56 @@ class PriceService {
       };
     }
   
-    // Rest of the methods remain the same...
+    formatPrice(price) {
+      try {
+        const numPrice = typeof price === 'string' ? Number(price) : price;
+        if (isNaN(numPrice) || numPrice === null || numPrice === undefined) return '0.00';
+        
+        if (numPrice < 0.0001) return numPrice.toFixed(8);
+        if (numPrice < 0.01) return numPrice.toFixed(6);
+        if (numPrice < 1) return numPrice.toFixed(4);
+        return numPrice.toFixed(2);
+      } catch (e) {
+        console.error('Error formatting price:', e);
+        return '0.00';
+      }
+    }
+  
+    formatPriceChange(change) {
+      try {
+        const numChange = typeof change === 'string' ? Number(change) : change;
+        if (isNaN(numChange) || numChange === null || numChange === undefined) return 0;
+        return Number(numChange.toFixed(2));
+      } catch (e) {
+        console.error('Error formatting price change:', e);
+        return 0;
+      }
+    }
+  
+    formatMarketCap(value) {
+      try {
+        if (typeof value === 'string') {
+          if (/[BMK]$/i.test(value)) return value;
+          value = Number(value.replace(/[^0-9.-]+/g, ''));
+        }
+        
+        if (isNaN(value) || value === null || value === undefined) return '0';
+        
+        if (value >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
+        if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
+        if (value >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
+        return value.toFixed(2);
+      } catch (e) {
+        console.error('Error formatting market cap:', e);
+        return '0';
+      }
+    }
+  
+    clearCache() {
+      this.cache.clear();
+      this.lastFetchTime = 0;
+      console.log('Cache cleared');
+    }
 }
 
 // Make it available globally for debugging
