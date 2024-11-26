@@ -11,25 +11,16 @@ module.exports = function(app) {
         '^/api/coingecko': ''
       },
       onProxyReq: (proxyReq) => {
-        // Add required headers
         proxyReq.setHeader('Accept', 'application/json');
         proxyReq.setHeader('User-Agent', 'Mozilla/5.0');
-        proxyReq.setHeader('Referer', 'https://api.coingecko.com');
       },
       onProxyRes: (proxyRes) => {
-        // Add CORS headers
-        proxyRes.headers['Access-Control-Allow-Origin'] = '*';
-        proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS';
-        proxyRes.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept';
-        proxyRes.headers['Access-Control-Max-Age'] = '3600';
+        // Ensure proper content type
+        proxyRes.headers['content-type'] = 'application/json';
       },
       onError: (err, req, res) => {
         console.error('Proxy Error:', err);
-        res.writeHead(500, {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        });
-        res.end(JSON.stringify({ error: 'Proxy Error', message: err.message }));
+        res.status(500).json({ error: 'Proxy Error', message: err.message });
       }
     })
   );

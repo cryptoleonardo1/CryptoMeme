@@ -1,30 +1,24 @@
 // src/services/priceService.js
 class PriceService {
     constructor() {
-      this.baseUrl = '/api/coingecko';
+      this.baseUrl = 'https://api.coingecko.com/api/v3';
       
-      // Token mappings with verified CoinGecko IDs
+      // Token mappings remain the same as before
       this.tokens = {
-        // Pepe tokens (IDs: 1, 2, 4)
         1: { id: 'pepe', network: 'ethereum' },
         2: { id: 'pepe', network: 'ethereum' },
         4: { id: 'pepe', network: 'ethereum' },
-
-        // Pnut tokens (IDs: 3, 5, 6, 7, 9)
         3: { id: 'peanut-the-squirrel', network: 'solana' },
         5: { id: 'peanut-the-squirrel', network: 'solana' },
         6: { id: 'peanut-the-squirrel', network: 'solana' },
         7: { id: 'peanut-the-squirrel', network: 'solana' },
         9: { id: 'peanut-the-squirrel', network: 'solana' },
-
-        // Popcat tokens (IDs: 8, 10, 11, 12, 13, 14)
         8: { id: 'popcat', network: 'solana' },
         10: { id: 'popcat', network: 'solana' },
         11: { id: 'popcat', network: 'solana' },
         12: { id: 'popcat', network: 'solana' },
         13: { id: 'popcat', network: 'solana' },
         14: { id: 'popcat', network: 'solana' },
-
         15: { id: 'shiba-inu', network: 'ethereum' },
         16: { id: 'bonk', network: 'solana' },
         17: { id: 'dogwifcoin', network: 'solana' },
@@ -34,87 +28,74 @@ class PriceService {
       };
 
       this.cache = new Map();
-      this.cacheTimeout = 300000; // 5 minutes cache
+      this.cacheTimeout = 60000; // 1 minute cache
       this.lastFetchTime = Date.now() - 10000;
-      this.minFetchInterval = 10000; // 10 seconds between calls
-      this.retryAttempts = 3;
-      this.retryDelay = 2000;
+      this.minFetchInterval = 6000; // 6 seconds between calls
     }
 
     async getTokenDataByMemeId(memeId) {
       const token = this.tokens[memeId];
       
       if (!token) {
-        console.log(`No CoinGecko mapping for meme ID: ${memeId}, using local data`);
+        console.log(`No CoinGecko mapping for meme ID: ${memeId}, using fallback`);
         return this.getFallbackDataForToken(memeId);
       }
 
-      // Check cache first
+      // Check cache
       const cachedData = this.cache.get(token.id);
       if (cachedData && Date.now() - cachedData.timestamp < this.cacheTimeout) {
-        console.log(`Using cached data for ${token.id}`);
         return cachedData.data;
       }
 
-      // Rate limiting check
+      // Check rate limiting
       const now = Date.now();
       if (now - this.lastFetchTime < this.minFetchInterval) {
-        console.log('Rate limit: using cached or fallback data');
         return cachedData?.data || this.getFallbackDataForToken(memeId);
       }
 
-      // Try to fetch with retries
-      for (let attempt = 0; attempt < this.retryAttempts; attempt++) {
-        try {
-          console.log(`Attempt ${attempt + 1} to fetch data for ${token.id}`);
-          const endpoint = `/simple/price?ids=${token.id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
-          
-          const response = await fetch(this.baseUrl + endpoint, {
+      try {
+        this.lastFetchTime = now;
+
+        // Using free CoinGecko API endpoint
+        const response = await fetch(
+          `${this.baseUrl}/simple/price?ids=${token.id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
+          {
             headers: {
               'Accept': 'application/json',
-              'Cache-Control': 'no-cache'
+              'Content-Type': 'application/json'
             }
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
           }
+        );
 
-          const data = await response.json();
-          
-          if (!data[token.id]) {
-            throw new Error('No data returned from CoinGecko');
-          }
-
-          const tokenData = data[token.id];
-          const formatted = {
-            price: this.formatPrice(tokenData.usd),
-            marketCap: this.formatMarketCap(tokenData.usd_market_cap),
-            priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
-            timestamp: now
-          };
-
-          // Update cache
-          this.cache.set(token.id, {
-            data: formatted,
-            timestamp: now
-          });
-
-          this.lastFetchTime = now;
-          console.log(`Successfully fetched data for ${token.id}:`, formatted);
-          return formatted;
-
-        } catch (error) {
-          console.warn(`Attempt ${attempt + 1} failed:`, error);
-          if (attempt === this.retryAttempts - 1) {
-            console.log('All attempts failed, using fallback data');
-            return this.getFallbackDataForToken(memeId);
-          }
-          await new Promise(resolve => setTimeout(resolve, this.retryDelay * (attempt + 1)));
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      }
 
-      return this.getFallbackDataForToken(memeId);
+        const data = await response.json();
+        
+        if (!data[token.id]) {
+          throw new Error('No data returned for token');
+        }
+
+        const tokenData = data[token.id];
+        const formatted = {
+          price: this.formatPrice(tokenData.usd),
+          marketCap: this.formatMarketCap(tokenData.usd_market_cap),
+          priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
+          timestamp: now
+        };
+
+        // Update cache
+        this.cache.set(token.id, {
+          data: formatted,
+          timestamp: now
+        });
+
+        return formatted;
+      } catch (error) {
+        console.warn('API fetch failed:', error);
+        return this.getFallbackDataForToken(memeId);
+      }
     }
 
     getFallbackDataForToken(memeId) {
@@ -123,17 +104,15 @@ class PriceService {
         const meme = dummyMemes.find(m => m.id === Number(memeId));
         
         if (meme?.projectDetails) {
-          const data = {
+          return {
             price: meme.projectDetails.price,
             marketCap: meme.projectDetails.marketCap,
             priceChange24h: Number(meme.projectDetails.priceChange24h) || 0,
             timestamp: Date.now()
           };
-          console.log(`Using fallback data for ${meme.projectName}:`, data);
-          return data;
         }
       } catch (e) {
-        console.warn('Could not load fallback data from dummyMemes:', e);
+        console.warn('Failed to load fallback data:', e);
       }
 
       return {
@@ -145,54 +124,31 @@ class PriceService {
     }
 
     formatPrice(price) {
-      try {
-        const numPrice = typeof price === 'string' ? Number(price) : price;
-        if (isNaN(numPrice) || numPrice === null || numPrice === undefined) return '0.00';
-        
-        if (numPrice < 0.0001) return numPrice.toFixed(8);
-        if (numPrice < 0.01) return numPrice.toFixed(6);
-        if (numPrice < 1) return numPrice.toFixed(4);
-        return numPrice.toFixed(2);
-      } catch (e) {
-        console.error('Error formatting price:', e);
-        return '0.00';
-      }
+      if (!price) return '0.00';
+      const numPrice = typeof price === 'string' ? Number(price) : price;
+      if (isNaN(numPrice)) return '0.00';
+      if (numPrice < 0.0001) return numPrice.toFixed(8);
+      if (numPrice < 0.01) return numPrice.toFixed(6);
+      if (numPrice < 1) return numPrice.toFixed(4);
+      return numPrice.toFixed(2);
     }
 
     formatPriceChange(change) {
-      try {
-        const numChange = typeof change === 'string' ? Number(change) : change;
-        if (isNaN(numChange) || numChange === null || numChange === undefined) return 0;
-        return Number(numChange.toFixed(2));
-      } catch (e) {
-        console.error('Error formatting price change:', e);
-        return 0;
-      }
+      if (!change) return 0;
+      return Number(Number(change).toFixed(2));
     }
 
     formatMarketCap(value) {
-      try {
-        if (typeof value === 'string') {
-          if (/[BMK]$/i.test(value)) return value;
-          value = Number(value.replace(/[^0-9.-]+/g, ''));
-        }
-        
-        if (isNaN(value) || value === null || value === undefined) return '0';
-        
-        if (value >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
-        if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
-        if (value >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
-        return value.toFixed(2);
-      } catch (e) {
-        console.error('Error formatting market cap:', e);
-        return '0';
+      if (!value) return '0';
+      if (typeof value === 'string') {
+        if (/[BMK]$/i.test(value)) return value;
+        value = Number(value.replace(/[^0-9.-]+/g, ''));
       }
-    }
-
-    clearCache() {
-      this.cache.clear();
-      this.lastFetchTime = Date.now() - 10000;
-      console.log('Cache cleared');
+      if (isNaN(value)) return '0';
+      if (value >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
+      if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
+      if (value >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
+      return value.toFixed(2);
     }
 }
 
