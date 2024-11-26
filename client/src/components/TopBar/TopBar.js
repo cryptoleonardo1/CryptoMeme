@@ -109,19 +109,24 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
       
       <div className="max-w-md mx-auto p-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col">
-            <div className="text-sm text-gray-400 mb-2">
+          <div className="flex flex-col space-y-2">
+            <div className="text-sm text-gray-400 h-6 flex items-center">
               Price:{' '}
               {loading ? (
-                <div className="h-6 w-24 bg-gray-700 animate-pulse rounded inline-block" />
+                <div className="ml-2 h-5 w-24 bg-gray-700 animate-pulse rounded" />
               ) : (
-                <span className="text-gray-200">
+                <span className="ml-2 text-gray-200">
                   {formatPrice(priceData?.price || meme?.projectDetails?.price)}
                 </span>
               )}
             </div>
-            <div className="text-sm text-gray-400 mb-2">
-              24h Price: {renderPriceChange()}
+            <div className="text-sm text-gray-400 h-6 flex items-center">
+              24h Price:{' '} 
+              {loading ? (
+                <div className="ml-2 h-5 w-20 bg-gray-700 animate-pulse rounded" />
+              ) : (
+                renderPriceChange()
+              )}
             </div>
             <button
               onClick={onDetailsClick}
@@ -132,20 +137,22 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
             </button>
           </div>
           
-          <div className="flex flex-col items-end">
-            <div className="text-sm text-gray-400 mb-2">
+          <div className="flex flex-col items-end space-y-2">
+            <div className="text-sm text-gray-400 h-6 flex items-center">
               Market Cap:{' '}
               {loading ? (
-                <div className="h-6 w-20 bg-gray-700 animate-pulse rounded inline-block" />
+                <div className="ml-2 h-5 w-20 bg-gray-700 animate-pulse rounded" />
               ) : (
                 <span className="text-gray-200">
                   ${priceData?.marketCap || meme?.projectDetails?.marketCap}
                 </span>
               )}
             </div>
-            <div className="text-sm text-gray-400 mb-2">
+            <div className="text-sm text-gray-400 h-6 flex items-center">
               Network:{' '}
-              <span className="text-gray-200">{meme?.projectDetails?.network}</span>
+              <span className="text-gray-200">
+                {meme?.projectDetails?.network}
+              </span>
             </div>
             <button
               onClick={handleBuyClick}
@@ -155,9 +162,7 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
               {isButtonLoading ? (
                 <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <>
-                  Buy Here ↗
-                </>
+                'Buy Here ↗'
               )}
             </button>
           </div>
