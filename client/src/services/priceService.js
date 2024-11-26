@@ -10,9 +10,40 @@ class PriceService {
   cache = new Map();
   cacheTimeout = 300000; // 5 minutes cache
 
+  formatPrice(price, network) {
+    if (!price) return '0';
+    
+    // For very small numbers (like PEPE), use 8 decimals
+    if (network.toLowerCase() === 'ethereum' && price < 0.0001) {
+      return price.toFixed(8);
+    }
+    
+    // For regular numbers, use 6 decimals
+    return price.toFixed(6);
+  }
+
+  formatMarketCap(value) {
+    if (!value) return '0';
+    
+    // Handle very large numbers properly
+    const bn = 1000000000;
+    const mn = 1000000;
+    const kn = 1000;
+    
+    if (value >= bn) {
+      return `${(value / bn).toFixed(1)}B`;
+    } else if (value >= mn) {
+      return `${(value / mn).toFixed(1)}M`;
+    } else if (value >= kn) {
+      return `${(value / kn).toFixed(1)}K`;
+    }
+    return value.toFixed(2);
+  }
+
   async getTokenData(contractAddress, network = 'solana') {
     const cacheKey = `${network}-${contractAddress}`;
     
+    // Check cache
     if (this.cache.has(cacheKey)) {
       const cachedData = this.cache.get(cacheKey);
       if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
@@ -22,7 +53,7 @@ class PriceService {
     }
 
     try {
-      console.log('Fetching fresh data for:', cacheKey);
+      console.log('Fetching fresh data for:', cacheKey, 'network:', network);
       
       let data;
       
@@ -34,27 +65,37 @@ class PriceService {
         
         if (response.data && response.data[contractAddress.toLowerCase()]) {
           const tokenData = response.data[contractAddress.toLowerCase()];
+          const price = parseFloat(tokenData.usd);
+          
           data = {
-            price: tokenData.usd.toFixed(8),
+            price: this.formatPrice(price, 'ethereum'),
             marketCap: this.formatMarketCap(tokenData.usd_market_cap),
-            priceChange24h: tokenData.usd_24h_change?.toFixed(2) || '0.00',
+            priceChange24h: (tokenData.usd_24h_change || 0).toFixed(2),
+            volume24h: this.formatMarketCap(tokenData.usd_24h_vol || 0),
             timestamp: Date.now()
           };
+          
+          console.log('Ethereum token data:', data);
         }
       } else {
         // Use GeckoTerminal for Solana tokens
         const response = await axios.get(
-          `${this.geckoTerminalBaseUrl}/networks/${network}/tokens/${contractAddress}/pools`
+          `${this.geckoTerminalBaseUrl}/networks/${network}/tokens/${contractAddress}`
         );
 
-        if (response.data?.data?.[0]?.attributes) {
-          const tokenData = response.data.data[0].attributes;
+        if (response.data?.data?.attributes) {
+          const tokenData = response.data.data.attributes;
+          const price = parseFloat(tokenData.price_usd || 0);
+          
           data = {
-            price: parseFloat(tokenData.token_price_usd || 0).toFixed(6),
+            price: this.formatPrice(price, 'solana'),
             marketCap: this.formatMarketCap(tokenData.fdv_usd || 0),
             priceChange24h: parseFloat(tokenData.price_change_24h || 0).toFixed(2),
+            volume24h: this.formatMarketCap(tokenData.volume_24h || 0),
             timestamp: Date.now()
           };
+          
+          console.log('Solana token data:', data);
         }
       }
 
@@ -62,8 +103,7 @@ class PriceService {
         throw new Error('Invalid API response');
       }
 
-      console.log('Formatted data:', data);
-
+      // Update cache
       this.cache.set(cacheKey, {
         data,
         timestamp: Date.now()
@@ -72,20 +112,9 @@ class PriceService {
       return data;
     } catch (error) {
       console.error('Error fetching token data:', error.message);
+      // Return cached data if available or null
       return this.cache.get(cacheKey)?.data || null;
     }
-  }
-
-  formatMarketCap(value) {
-    if (!value) return '0';
-    if (value >= 1e9) {
-      return `${(value / 1e9).toFixed(1)}B`;
-    } else if (value >= 1e6) {
-      return `${(value / 1e6).toFixed(1)}M`;
-    } else if (value >= 1e3) {
-      return `${(value / 1e3).toFixed(1)}K`;
-    }
-    return value.toFixed(2);
   }
 
   clearCache() {

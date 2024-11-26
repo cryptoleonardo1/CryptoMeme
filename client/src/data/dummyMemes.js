@@ -47,6 +47,7 @@ const dummyMemes = [
     id: 2,
     projectName: "PEPE",
     content: meme2,
+    weight: 1,
     logo: logo1,
     projectDetails: {
       network: "Ethereum",
@@ -64,7 +65,7 @@ const dummyMemes = [
     id: 3,
     projectName: "PNUT",
     content: meme3,
-    weight: 2,
+    weight: 1,
     logo: logo3,
     projectDetails: {
       network: "Solana",
@@ -101,7 +102,7 @@ const dummyMemes = [
     id: 5,
     projectName: "PNUT",
     content: meme5,
-    weight: 2,
+    weight: 1,
     logo: logo3,
     projectDetails: {
       network: "Solana",
@@ -120,7 +121,7 @@ const dummyMemes = [
     id: 6,
     projectName: "PNUT",
     content: meme6,
-    weight: 2,
+    weight: 1,
     logo: logo3,
     projectDetails: {
       network: "Solana",
@@ -139,6 +140,7 @@ const dummyMemes = [
     id: 7,
     projectName: "PNUT",
     content: meme7,
+    weight: 1,
     logo: logo3,
     projectDetails: {
       network: "Solana",
@@ -157,7 +159,7 @@ const dummyMemes = [
     id: 8,
     projectName: "POPCAT",
     content: meme8,
-    weight: 3,
+    weight: 1,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -176,6 +178,7 @@ const dummyMemes = [
     id: 9,
     projectName: "PNUT",
     content: meme9,
+    weight: 1,
     logo: logo3,
     projectDetails: {
       network: "Solana",
@@ -194,7 +197,7 @@ const dummyMemes = [
     id: 10,
     projectName: "POPCAT",
     content: meme10,
-    weight: 3,
+    weight: 1,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -213,7 +216,7 @@ const dummyMemes = [
     id: 11,
     projectName: "POPCAT",
     content: meme11,
-    weight: 3,
+    weight: 1,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -232,7 +235,7 @@ const dummyMemes = [
     id: 12,
     projectName: "POPCAT",
     content: meme12,
-    weight: 3,
+    weight: 1,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -251,7 +254,7 @@ const dummyMemes = [
     id: 13,
     projectName: "POPCAT",
     content: meme13,
-    weight: 3,
+    weight: 1,
     logo: logo2,
     projectDetails: {
       network: "Solana",
@@ -270,7 +273,7 @@ const dummyMemes = [
     id: 14,
     projectName: "POPCAT",
     content: meme14,
-    weight: 3,
+    weight: 1,
     logo: logo2,
     projectDetails: {
       network: "Solana",
