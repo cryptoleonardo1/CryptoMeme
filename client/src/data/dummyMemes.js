@@ -45,7 +45,7 @@ const dummyMemes = [
   },
   {
     id: 2,
-    projectName: "PEPE NoWeight",
+    projectName: "PEPE",
     content: meme2,
     logo: logo1,
     projectDetails: {
@@ -137,7 +137,7 @@ const dummyMemes = [
   },
   {
     id: 7,
-    projectName: "PNUT NoWeight",
+    projectName: "PNUT",
     content: meme7,
     logo: logo3,
     projectDetails: {
@@ -174,7 +174,7 @@ const dummyMemes = [
   },
   {
     id: 9,
-    projectName: "PNUT-NoWeight",
+    projectName: "PNUT",
     content: meme9,
     logo: logo3,
     projectDetails: {
