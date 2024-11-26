@@ -1,5 +1,5 @@
+// src/components/TopBar/TopBar.js
 import React, { useEffect, useState } from 'react';
-import { ExternalLink, X } from 'lucide-react';
 import { priceService } from '../../services/priceService';
 
 const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
@@ -47,19 +47,16 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
       }
     };
 
-    console.log('TopBar mounted/updated with meme:', meme);
     fetchPriceData();
-
     const intervalId = setInterval(fetchPriceData, 60000);
 
     return () => {
-      console.log('TopBar cleanup');
       isMounted = false;
       clearInterval(intervalId);
     };
   }, [meme]);
 
-  const handleBuyClick = async () => {
+  const handleBuyClick = () => {
     setIsButtonLoading(true);
     try {
       window.open(meme?.projectDetails?.buyLink, '_blank', 'noopener,noreferrer');
@@ -131,14 +128,7 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
               className="w-32 px-3 py-1 bg-[#2c2d31] text-gray-200 rounded-lg text-sm font-medium hover:bg-[#3c3d41] transition-all flex items-center justify-center gap-2"
               disabled={loading}
             >
-              {isDetailsOpen ? (
-                <>
-                  <X className="h-4 w-4" />
-                  Close
-                </>
-              ) : (
-                'Details'
-              )}
+              {isDetailsOpen ? '✕ Close' : 'Details'}
             </button>
           </div>
           
@@ -166,8 +156,7 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
                 <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  Buy Here
-                  <ExternalLink className="h-4 w-4" />
+                  Buy Here ↗
                 </>
               )}
             </button>
