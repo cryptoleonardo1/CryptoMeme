@@ -1,99 +1,81 @@
 // src/services/priceService.js
-//test
 class PriceService {
     constructor() {
-      // Using simpler API endpoint
+      // Using simple price endpoint
       this.baseUrl = 'https://api.coingecko.com/api/v3';
       
-      // Map tokens to CoinGecko IDs (using exact CoinGecko IDs)
-      this.coinMap = {
-        'wif-dogwifhat': {  // Updated ID
-          memeIds: [17],
-          contract: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'
+      // List of CoinGecko IDs for all tokens
+      this.tokens = {
+        15: { // Shiba
+          id: 'shiba-inu',
+          network: 'ethereum'
         },
-        pepe: {
-          memeIds: [1, 2, 4],
-          contract: '0x6982508145454ce325ddbe47a25d4ec3d2311933'
+        1: { // Pepe
+          id: 'pepe',
+          network: 'ethereum'
         },
-        'peanut-the-squirrel': {
-          memeIds: [3, 5, 6, 7, 9],
-          contract: '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump'
+        17: { // DogWifHat
+          id: 'dogwifhat',
+          network: 'solana'
         },
-        'popcat-sols': {  // Updated ID
-          memeIds: [8, 10, 11, 12, 13, 14],
-          contract: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr'
+        8: { // Popcat
+          id: 'popcat',
+          network: 'solana'
         },
-        bonk: {
-          memeIds: [16],
-          contract: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
+        16: { // Bonk
+          id: 'bonk',
+          network: 'solana'
         },
-        'shiba-inu': {
-          memeIds: [15],
-          contract: '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce'
+        18: { // Floki
+          id: 'floki',
+          network: 'ethereum'
         },
-        floki: {
-          memeIds: [18],
-          contract: '0xcf0c122c6b73ff809c693db761e7baebe62b6a2e'
+        19: { // Brett
+          id: 'based-brett',
+          network: 'base'
         },
-        'based-finance': {  // Updated ID
-          memeIds: [19],
-          contract: '0x532f27101965dd16442e59d40670faf5ebb142e4'
-        },
-        'goatseus-maximus-sol': {  // Updated ID
-          memeIds: [20],
-          contract: 'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump'
+        20: { // Goatseus
+          id: 'goatseus-maximus',
+          network: 'solana'
         }
       };
   
-      // Create reverse mapping
-      this.memeToToken = {};
-      Object.entries(this.coinMap).forEach(([token, info]) => {
-        info.memeIds.forEach(memeId => {
-          this.memeToToken[memeId] = token;
-        });
-      });
+      this.cache = new Map();
+      this.cacheTimeout = 60000; // 1 minute cache
+      this.lastFetchTime = 0;
+      this.minFetchInterval = 6000; // 6 seconds between API calls
     }
-  
-    cache = new Map();
-    cacheTimeout = 300000; // 5 minutes
   
     async getTokenDataByMemeId(memeId) {
-      try {
-        const tokenId = this.memeToToken[memeId];
-        if (!tokenId) {
-          console.warn('No token found for meme ID:', memeId);
-          return null;
-        }
-        return await this.fetchTokenData(tokenId);
-      } catch (error) {
-        console.error('Error in getTokenDataByMemeId:', error);
-        return null;
+      const token = this.tokens[memeId];
+      if (!token) {
+        console.warn('No token found for meme ID:', memeId);
+        return this.getFallbackData();
       }
-    }
   
-    async fetchTokenData(tokenId) {
       try {
         // Check cache first
-        if (this.cache.has(tokenId)) {
-          const cachedData = this.cache.get(tokenId);
-          if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
-            console.log(`Using cached data for ${tokenId}`);
-            return cachedData.data;
-          }
+        const cachedData = this.cache.get(token.id);
+        if (cachedData && Date.now() - cachedData.timestamp < this.cacheTimeout) {
+          console.log(`Using cached data for ${token.id}`);
+          return cachedData.data;
         }
   
-        console.log(`Fetching fresh data for ${tokenId}`);
+        // Rate limiting check
+        const now = Date.now();
+        const timeSinceLastFetch = now - this.lastFetchTime;
+        if (timeSinceLastFetch < this.minFetchInterval) {
+          console.log('Rate limit: using cached or fallback data');
+          return cachedData?.data || this.getFallbackData();
+        }
   
-        // Use the /coins endpoint for more detailed data
-        const url = `${this.baseUrl}/coins/${tokenId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
+        // Fetch new data
+        console.log(`Fetching fresh data for ${token.id}`);
+        this.lastFetchTime = now;
+  
+        const response = await fetch(
+          `${this.baseUrl}/simple/price?ids=${token.id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`
+        );
   
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -101,39 +83,44 @@ class PriceService {
   
         const data = await response.json();
         
-        if (!data.market_data) {
-          throw new Error('No market data available');
+        if (!data[token.id]) {
+          throw new Error('No data returned');
         }
   
+        const tokenData = data[token.id];
         const formatted = {
-          price: this.formatPrice(data.market_data.current_price.usd),
-          marketCap: this.formatMarketCap(data.market_data.market_cap.usd),
-          priceChange24h: this.formatPriceChange(data.market_data.price_change_percentage_24h),
-          timestamp: Date.now()
+          price: this.formatPrice(tokenData.usd),
+          marketCap: this.formatMarketCap(tokenData.usd_market_cap),
+          priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
+          timestamp: now
         };
   
         // Update cache
-        this.cache.set(tokenId, {
+        this.cache.set(token.id, {
           data: formatted,
-          timestamp: Date.now()
+          timestamp: now
         });
   
-        console.log(`Formatted data for ${tokenId}:`, formatted);
         return formatted;
-  
       } catch (error) {
-        console.error(`Error fetching data for ${tokenId}:`, error);
-        return this.fallbackToStaticData(tokenId);
+        console.error(`Error fetching ${token.id}:`, error);
+        return this.getFallbackDataForToken(memeId);
       }
     }
   
-    fallbackToStaticData(tokenId) {
+    getFallbackDataForToken(memeId) {
       // Return cached data if available
-      if (this.cache.has(tokenId)) {
-        return this.cache.get(tokenId).data;
+      const token = this.tokens[memeId];
+      if (token) {
+        const cachedData = this.cache.get(token.id);
+        if (cachedData) {
+          return cachedData.data;
+        }
       }
+      return this.getFallbackData();
+    }
   
-      // Default static data as last resort
+    getFallbackData() {
       return {
         price: '0.00',
         marketCap: '0',
@@ -143,12 +130,10 @@ class PriceService {
     }
   
     formatPrice(price) {
-      if (!price) return '0';
-      if (price < 0.0001) {
-        return price.toFixed(8);
-      } else if (price < 0.01) {
-        return price.toFixed(6);
-      }
+      if (!price) return '0.00';
+      if (price < 0.0001) return price.toFixed(8);
+      if (price < 0.01) return price.toFixed(6);
+      if (price < 1) return price.toFixed(4);
       return price.toFixed(2);
     }
   
@@ -159,20 +144,20 @@ class PriceService {
   
     formatMarketCap(value) {
       if (!value) return '0';
-      if (value >= 1e9) {
-        return `${(value / 1e9).toFixed(1)}B`;
-      } else if (value >= 1e6) {
-        return `${(value / 1e6).toFixed(1)}M`;
-      } else if (value >= 1e3) {
-        return `${(value / 1e3).toFixed(1)}K`;
-      }
+      if (value >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
+      if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
+      if (value >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
       return value.toFixed(2);
     }
   
     clearCache() {
       this.cache.clear();
+      this.lastFetchTime = 0;
       console.log('Cache cleared');
     }
   }
   
-  export const priceService = new PriceService();
+  // Make it available globally for debugging
+  window.priceService = new PriceService();
+  
+  export const priceService = window.priceService;
