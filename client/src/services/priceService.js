@@ -3,12 +3,79 @@ import axios from 'axios';
 
 class PriceService {
   constructor() {
-    this.geckoTerminalBaseUrl = 'https://api.geckoterminal.com/api/v2';
     this.coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
+    
+    // Map our tokens to CoinGecko IDs
+    this.tokenMap = {
+      // Ethereum tokens
+      '0x6982508145454ce325ddbe47a25d4ec3d2311933': {
+        id: 'pepe',
+        platform: 'ethereum'
+      },
+      // Solana tokens
+      '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr': {
+        id: 'popcat',
+        platform: 'solana'
+      },
+      '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump': {
+        id: 'peanut',
+        platform: 'solana'
+      }
+    };
   }
 
   cache = new Map();
   cacheTimeout = 300000; // 5 minutes cache
+
+  async getTokenData(contractAddress, network = 'solana') {
+    const cacheKey = `${network}-${contractAddress}`;
+    
+    // Check cache
+    if (this.cache.has(cacheKey)) {
+      const cachedData = this.cache.get(cacheKey);
+      if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
+        return cachedData.data;
+      }
+    }
+
+    try {
+      const tokenInfo = this.tokenMap[contractAddress];
+      if (!tokenInfo) {
+        throw new Error('Token not found in mapping');
+      }
+
+      // Fetch data from CoinGecko
+      const response = await axios.get(
+        `${this.coingeckoBaseUrl}/simple/price?ids=${tokenInfo.id}&vs_currencies=usd&include_24hr_vol=true&include_24hr_change=true&include_market_cap=true`
+      );
+
+      if (!response.data || !response.data[tokenInfo.id]) {
+        throw new Error('Invalid API response');
+      }
+
+      const tokenData = response.data[tokenInfo.id];
+      
+      // Format the data
+      const data = {
+        price: this.formatPrice(tokenData.usd, network),
+        marketCap: this.formatMarketCap(tokenData.usd_market_cap),
+        priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
+        volume24h: this.formatMarketCap(tokenData.usd_24h_vol),
+        timestamp: Date.now()
+      };
+
+      // Update cache
+      this.cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching token data:', error.message);
+      return this.cache.get(cacheKey)?.data || null;
+    }
+  }
 
   formatPrice(price, network) {
     if (!price) return '0';
@@ -22,10 +89,14 @@ class PriceService {
     return price.toFixed(6);
   }
 
+  formatPriceChange(change) {
+    if (!change) return '0.00';
+    return change.toFixed(2);
+  }
+
   formatMarketCap(value) {
     if (!value) return '0';
     
-    // Handle very large numbers properly
     const bn = 1000000000;
     const mn = 1000000;
     const kn = 1000;
@@ -40,86 +111,8 @@ class PriceService {
     return value.toFixed(2);
   }
 
-  async getTokenData(contractAddress, network = 'solana') {
-    const cacheKey = `${network}-${contractAddress}`;
-    
-    // Check cache
-    if (this.cache.has(cacheKey)) {
-      const cachedData = this.cache.get(cacheKey);
-      if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
-        console.log('Returning cached data for:', cacheKey);
-        return cachedData.data;
-      }
-    }
-
-    try {
-      console.log('Fetching fresh data for:', cacheKey, 'network:', network);
-      
-      let data;
-      
-      if (network.toLowerCase() === 'ethereum') {
-        // Use CoinGecko for Ethereum tokens
-        const response = await axios.get(
-          `${this.coingeckoBaseUrl}/simple/token_price/ethereum/${contractAddress}?include_24hr_change=true&include_market_cap=true&vs_currencies=usd`
-        );
-        
-        if (response.data && response.data[contractAddress.toLowerCase()]) {
-          const tokenData = response.data[contractAddress.toLowerCase()];
-          const price = parseFloat(tokenData.usd);
-          
-          data = {
-            price: this.formatPrice(price, 'ethereum'),
-            marketCap: this.formatMarketCap(tokenData.usd_market_cap),
-            priceChange24h: (tokenData.usd_24h_change || 0).toFixed(2),
-            volume24h: this.formatMarketCap(tokenData.usd_24h_vol || 0),
-            timestamp: Date.now()
-          };
-          
-          console.log('Ethereum token data:', data);
-        }
-      } else {
-        // Use GeckoTerminal for Solana tokens
-        const response = await axios.get(
-          `${this.geckoTerminalBaseUrl}/networks/${network}/tokens/${contractAddress}`
-        );
-
-        if (response.data?.data?.attributes) {
-          const tokenData = response.data.data.attributes;
-          const price = parseFloat(tokenData.price_usd || 0);
-          
-          data = {
-            price: this.formatPrice(price, 'solana'),
-            marketCap: this.formatMarketCap(tokenData.fdv_usd || 0),
-            priceChange24h: parseFloat(tokenData.price_change_24h || 0).toFixed(2),
-            volume24h: this.formatMarketCap(tokenData.volume_24h || 0),
-            timestamp: Date.now()
-          };
-          
-          console.log('Solana token data:', data);
-        }
-      }
-
-      if (!data) {
-        throw new Error('Invalid API response');
-      }
-
-      // Update cache
-      this.cache.set(cacheKey, {
-        data,
-        timestamp: Date.now()
-      });
-
-      return data;
-    } catch (error) {
-      console.error('Error fetching token data:', error.message);
-      // Return cached data if available or null
-      return this.cache.get(cacheKey)?.data || null;
-    }
-  }
-
   clearCache() {
     this.cache.clear();
-    console.log('Cache cleared');
   }
 }
 
