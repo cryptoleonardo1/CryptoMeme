@@ -1,6 +1,6 @@
 {
   "dependencies": {
     "http-proxy-middleware": "^3.0.3",
-    "lucide-react": "^0.461.0"
+    "lucide-react": "^0.263.1"
   }
 }
