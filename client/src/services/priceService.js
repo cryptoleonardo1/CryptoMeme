@@ -1,94 +1,42 @@
 // src/services/priceService.js
 class PriceService {
     constructor() {
-      // Use proxy endpoint for production, direct API for development
-      this.baseUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://api.coingecko.com/api/v3'
-        : '/api/coingecko';
-
-      // Token mappings remain the same
-      this.tokens = {
-        1: { id: 'pepe', network: 'ethereum' },
-        2: { id: 'pepe', network: 'ethereum' },
-        4: { id: 'pepe', network: 'ethereum' },
-        3: { id: 'peanut-the-squirrel', network: 'solana' },
-        5: { id: 'peanut-the-squirrel', network: 'solana' },
-        6: { id: 'peanut-the-squirrel', network: 'solana' },
-        7: { id: 'peanut-the-squirrel', network: 'solana' },
-        9: { id: 'peanut-the-squirrel', network: 'solana' },
-        8: { id: 'popcat', network: 'solana' },
-        10: { id: 'popcat', network: 'solana' },
-        11: { id: 'popcat', network: 'solana' },
-        12: { id: 'popcat', network: 'solana' },
-        13: { id: 'popcat', network: 'solana' },
-        14: { id: 'popcat', network: 'solana' },
-        15: { id: 'shiba-inu', network: 'ethereum' },
-        16: { id: 'bonk', network: 'solana' },
-        17: { id: 'dogwifcoin', network: 'solana' },
-        18: { id: 'floki', network: 'ethereum' },
-        19: { id: 'based-brett', network: 'base' },
-        20: { id: 'goatseus-maximus', network: 'solana' }
+      this.baseUrl = '/api/coingecko';
+      
+      // Create a map of unique tokens to fetch (removing duplicates)
+      this.uniqueTokens = {
+        'pepe': ['1', '2', '4'],
+        'peanut-the-squirrel': ['3', '5', '6', '7', '9'],
+        'popcat': ['8', '10', '11', '12', '13', '14'],
+        'shiba-inu': ['15'],
+        'bonk': ['16'],
+        'dogwifcoin': ['17'],
+        'floki': ['18'],
+        'based-brett': ['19'],
+        'goatseus-maximus': ['20']
       };
 
       this.cache = new Map();
-      this.cacheTimeout = 30000; // 30 seconds cache
-      this.lastFetchTime = Date.now() - 10000;
-      this.minFetchInterval = 3000; // 3 seconds between calls
-      this.pendingRequests = new Map();
+      this.cacheTimeout = 3600000; // 1 hour cache
+      this.isInitialDataLoaded = false;
+      this.lastBatchLoadTime = 0;
     }
 
-    async getTokenDataByMemeId(memeId) {
-      const token = this.tokens[memeId];
-      
-      if (!token) {
-        return this.getFallbackDataForToken(memeId);
-      }
-
-      // First, immediately return cached data if available
-      const cachedData = this.cache.get(token.id);
-      if (cachedData && Date.now() - cachedData.timestamp < this.cacheTimeout) {
-        return cachedData.data;
-      }
-
-      // Return fallback data immediately while fetching fresh data
-      const fallbackData = this.getFallbackDataForToken(memeId);
-      
-      // Check if there's already a pending request for this token
-      if (this.pendingRequests.has(token.id)) {
-        return this.pendingRequests.get(token.id);
-      }
-
-      // Create new request promise
-      const requestPromise = this.fetchTokenData(token.id, memeId);
-      this.pendingRequests.set(token.id, requestPromise);
-
-      try {
-        const result = await requestPromise;
-        this.pendingRequests.delete(token.id);
-        return result;
-      } catch (error) {
-        this.pendingRequests.delete(token.id);
-        return fallbackData;
-      }
-    }
-
-    async fetchTokenData(tokenId, memeId) {
-      const now = Date.now();
-      const timeSinceLastFetch = now - this.lastFetchTime;
-      
-      if (timeSinceLastFetch < this.minFetchInterval) {
-        await new Promise(resolve => setTimeout(resolve, this.minFetchInterval - timeSinceLastFetch));
+    async initializeData() {
+      if (this.isInitialDataLoaded && Date.now() - this.lastBatchLoadTime < this.cacheTimeout) {
+        return;
       }
 
       try {
-        this.lastFetchTime = Date.now();
-
+        // Get all unique token IDs
+        const tokenIds = Object.keys(this.uniqueTokens).join(',');
+        
+        console.log('Loading initial price data...');
         const response = await fetch(
-          `${this.baseUrl}/simple/price?ids=${tokenId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
+          `${this.baseUrl}/simple/price?ids=${tokenIds}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
           {
             headers: {
-              'Accept': 'application/json',
-              'Cache-Control': 'no-cache'
+              'Accept': 'application/json'
             }
           }
         );
@@ -98,55 +46,63 @@ class PriceService {
         }
 
         const data = await response.json();
-        
-        if (!data[tokenId]) {
-          throw new Error('No data returned for token');
-        }
+        const now = Date.now();
 
-        const tokenData = data[tokenId];
-        const formatted = {
-          price: this.formatPrice(tokenData.usd),
-          marketCap: this.formatMarketCap(tokenData.usd_market_cap),
-          priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
-          timestamp: now
-        };
+        // Process and cache data for each token
+        Object.entries(data).forEach(([tokenId, tokenData]) => {
+          const formatted = {
+            price: this.formatPrice(tokenData.usd),
+            marketCap: this.formatMarketCap(tokenData.usd_market_cap),
+            priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
+            timestamp: now
+          };
 
-        // Update cache
-        this.cache.set(tokenId, {
-          data: formatted,
-          timestamp: now
+          // Cache the data for all meme IDs that use this token
+          this.uniqueTokens[tokenId].forEach(memeId => {
+            this.cache.set(memeId, {
+              data: formatted,
+              timestamp: now
+            });
+          });
         });
 
-        return formatted;
+        this.isInitialDataLoaded = true;
+        this.lastBatchLoadTime = now;
+        console.log('Initial price data loaded successfully');
       } catch (error) {
-        console.warn('API fetch failed:', error);
-        return this.getFallbackDataForToken(memeId);
+        console.warn('Failed to load initial price data:', error);
+        // Load fallback data for all tokens
+        this.loadAllFallbackData();
       }
     }
 
-    getFallbackDataForToken(memeId) {
-      try {
-        const dummyMemes = require('../data/dummyMemes').default;
-        const meme = dummyMemes.find(m => m.id === Number(memeId));
-        
-        if (meme?.projectDetails) {
-          return {
-            price: meme.projectDetails.price,
-            marketCap: meme.projectDetails.marketCap,
-            priceChange24h: Number(meme.projectDetails.priceChange24h) || 0,
-            timestamp: Date.now()
-          };
+    loadAllFallbackData() {
+      const dummyMemes = require('../data/dummyMemes').default;
+      const now = Date.now();
+
+      dummyMemes.forEach(meme => {
+        if (meme.projectDetails) {
+          this.cache.set(meme.id.toString(), {
+            data: {
+              price: meme.projectDetails.price,
+              marketCap: meme.projectDetails.marketCap,
+              priceChange24h: Number(meme.projectDetails.priceChange24h) || 0,
+              timestamp: now
+            },
+            timestamp: now
+          });
         }
-      } catch (e) {
-        console.warn('Failed to load fallback data:', e);
+      });
+    }
+
+    getTokenDataByMemeId(memeId) {
+      const cachedData = this.cache.get(memeId.toString());
+      if (cachedData) {
+        return cachedData.data;
       }
 
-      return {
-        price: '0.00',
-        marketCap: '0',
-        priceChange24h: 0,
-        timestamp: Date.now()
-      };
+      // If no cached data, return fallback data
+      return this.getFallbackDataForToken(memeId);
     }
 
     formatPrice(price) {
@@ -181,9 +137,10 @@ class PriceService {
 // Create single instance
 const priceService = new PriceService();
 
-// Make it available globally for debugging
+// Initialize data loading when the service is created
 if (typeof window !== 'undefined') {
   window.priceService = priceService;
+  priceService.initializeData();
 }
 
 export { priceService };

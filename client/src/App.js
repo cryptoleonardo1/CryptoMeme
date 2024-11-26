@@ -10,8 +10,10 @@ import TasksPage from './components/TasksPage';
 import ProfilePage from './components/ProfilePage';
 import RanksPage from './components/RanksPage';
 import dummyMemes from './data/dummyMemes';
+import { priceService } from './services/priceService';
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('memes');
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [currentMeme, setCurrentMeme] = useState(dummyMemes[0]);
@@ -19,6 +21,23 @@ function App() {
   const handleMemeChange = (meme) => {
     setCurrentMeme(meme);
   };
+
+  useEffect(() => {
+    async function initializeApp() {
+      WebApp.ready();
+      WebApp.expand();
+      
+      try {
+        await priceService.initializeData();
+      } catch (error) {
+        console.warn('Failed to load initial price data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    initializeApp();
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -37,7 +56,7 @@ function App() {
                 <ProjectHeader meme={currentMeme} />
               </div>
             </div>
-            
+
             {/* Top Bar with Stats */}
             <div className="fixed top-[72px] left-0 right-0 z-[60]">
               <div className="w-full bg-[#1a1b1e] border-t border-[#2c2d31]">
@@ -72,15 +91,20 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    WebApp.ready();
-    WebApp.expand();
-  }, []);
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-[#1a1b1e] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Loading market data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-[#1a1b1e] overflow-hidden">
       {renderContent()}
-      
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-[60]">
         <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
