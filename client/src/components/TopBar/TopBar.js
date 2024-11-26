@@ -10,7 +10,7 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
     let isMounted = true;
     
     const fetchPriceData = async () => {
-      if (!meme?.projectDetails?.contract) {
+      if (!meme?.id) {
         setLoading(false);
         return;
       }
@@ -19,13 +19,10 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
         setLoading(true);
         setError(null);
         
-        const data = await priceService.getTokenData(
-          meme.projectDetails.contract,
-          meme.projectDetails.network.toLowerCase()
-        );
+        const data = await priceService.getTokenDataByMemeId(meme.id);
         
         if (isMounted && data) {
-          console.log('Price data updated for', meme.projectName, ':', data);
+          console.log(`Price data updated for ${meme.projectName} (ID: ${meme.id}):`, data);
           setPriceData(data);
         }
       } catch (error) {
@@ -40,7 +37,6 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
 
     fetchPriceData();
     
-    // Update every 5 minutes
     const intervalId = setInterval(fetchPriceData, 300000);
 
     return () => {
@@ -115,7 +111,8 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
               Market Cap: {renderMarketCap()}
             </div>
             <div className="text-sm text-gray-400 mb-2">
-              Network: <span className="text-gray-200">{meme?.projectDetails?.network}</span>
+              Network:{' '}
+              <span className="text-gray-200">{meme?.projectDetails?.network}</span>
             </div>
             <button
               onClick={() => window.open(meme?.projectDetails?.buyLink, '_blank', 'noopener,noreferrer')}

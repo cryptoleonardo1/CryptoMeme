@@ -5,75 +5,99 @@ class PriceService {
   constructor() {
     this.coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
     
-    // Updated token mapping with correct IDs
+    // Map contract addresses to CoinGecko IDs with additional meme IDs
     this.tokenMap = {
       // Ethereum tokens
       '0x6982508145454ce325ddbe47a25d4ec3d2311933': {
         id: 'pepe',
-        platform: 'ethereum'
+        platform: 'ethereum',
+        memeIds: [1, 2, 4]  // Add all meme IDs that use this token
       },
       '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce': {
         id: 'shiba-inu',
-        platform: 'ethereum'
+        platform: 'ethereum',
+        memeIds: [15]
       },
       '0xcf0c122c6b73ff809c693db761e7baebe62b6a2e': {
         id: 'floki',
-        platform: 'ethereum'
+        platform: 'ethereum',
+        memeIds: [18]
       },
       // Solana tokens
       '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr': {
         id: 'popcat',
-        platform: 'solana'
+        platform: 'solana',
+        memeIds: [8, 10, 11, 12, 13, 14]  // All Popcat meme IDs
       },
       '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump': {
         id: 'peanut-the-squirrel',
-        platform: 'solana'
+        platform: 'solana',
+        memeIds: [3, 5, 6, 7, 9]  // All PNUT meme IDs
       },
       'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263': {
         id: 'bonk',
-        platform: 'solana'
+        platform: 'solana',
+        memeIds: [16]
       },
       'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm': {
-        id: 'dogwifhat',  // Verified correct ID
-        platform: 'solana'
+        id: 'dogwifhat',
+        platform: 'solana',
+        memeIds: [17]
       },
       'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump': {
         id: 'goatseus-maximus',
-        platform: 'solana'
+        platform: 'solana',
+        memeIds: [20]
       },
       // Base tokens
       '0x532f27101965dd16442e59d40670faf5ebb142e4': {
         id: 'based-brett',
-        platform: 'base'
+        platform: 'base',
+        memeIds: [19]
       }
     };
+
+    // Reverse mapping for meme IDs to contract addresses
+    this.memeIdToContract = {};
+    Object.entries(this.tokenMap).forEach(([contract, info]) => {
+      info.memeIds.forEach(memeId => {
+        this.memeIdToContract[memeId] = contract;
+      });
+    });
   }
 
   cache = new Map();
   cacheTimeout = 300000; // 5 minutes cache
 
-  async getTokenData(contractAddress, network = 'solana') {
-    const cacheKey = `${network}-${contractAddress}`;
+  async getTokenDataByMemeId(memeId) {
+    const contract = this.memeIdToContract[memeId];
+    if (!contract) {
+      console.warn('No contract found for meme ID:', memeId);
+      return null;
+    }
+    return this.getTokenData(contract);
+  }
+
+  async getTokenData(contractAddress) {
+    const tokenInfo = this.tokenMap[contractAddress];
+    if (!tokenInfo) {
+      console.warn('Token not found in mapping:', contractAddress);
+      return null;
+    }
+
+    const cacheKey = `${tokenInfo.platform}-${contractAddress}`;
     
     // Check cache
     if (this.cache.has(cacheKey)) {
       const cachedData = this.cache.get(cacheKey);
       if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
-        console.log('Using cached data for:', cacheKey);
         return cachedData.data;
       }
     }
 
     try {
-      const tokenInfo = this.tokenMap[contractAddress];
-      if (!tokenInfo) {
-        console.warn('Token not found in mapping:', contractAddress);
-        return null;
-      }
+      console.log(`Fetching data for ${tokenInfo.id} (${tokenInfo.platform})`);
 
-      console.log('Fetching fresh data for token:', tokenInfo.id);
-
-      // Split requests to handle rate limiting better
       const response = await axios.get(
         `${this.coingeckoBaseUrl}/simple/price`,
         {
@@ -84,18 +108,20 @@ class PriceService {
             include_24hr_change: true,
             include_market_cap: true,
             precision: 18
+          },
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
           }
         }
       );
 
       if (!response.data || !response.data[tokenInfo.id]) {
-        console.error('Invalid response for token:', tokenInfo.id, response.data);
         throw new Error(`No data returned for ${tokenInfo.id}`);
       }
 
       const tokenData = response.data[tokenInfo.id];
       
-      // Format the data
       const data = {
         price: this.formatPrice(tokenData.usd, tokenInfo.platform),
         marketCap: this.formatMarketCap(tokenData.usd_market_cap),
@@ -103,8 +129,6 @@ class PriceService {
         volume24h: this.formatMarketCap(tokenData.usd_24h_vol),
         timestamp: Date.now()
       };
-
-      console.log('Formatted data for', tokenInfo.id, ':', data);
 
       // Update cache
       this.cache.set(cacheKey, {
@@ -114,32 +138,24 @@ class PriceService {
 
       return data;
     } catch (error) {
-      console.error('Error fetching token data:', contractAddress, error.message);
-      
-      // Return cached data if available
-      if (this.cache.has(cacheKey)) {
-        console.log('Returning stale cached data for:', cacheKey);
-        return this.cache.get(cacheKey).data;
-      }
-      
-      // Return null if no cache available
-      return null;
+      console.error(`Error fetching ${tokenInfo.id} data:`, error.message);
+      return this.cache.get(cacheKey)?.data || null;
     }
   }
 
   formatPrice(price, platform) {
     if (typeof price !== 'number' || isNaN(price)) {
-      console.warn('Invalid price value:', price);
       return '0';
     }
     
-    // For very small numbers (like PEPE, SHIB, BONK), use 8 decimals
-    if ((platform === 'ethereum' || platform === 'solana') && price < 0.0001) {
+    // For very small numbers
+    if (price < 0.0001) {
       return price.toFixed(8);
+    } else if (price < 0.01) {
+      return price.toFixed(6);
+    } else {
+      return price.toFixed(2);
     }
-    
-    // For regular numbers, use 6 decimals
-    return price.toFixed(6);
   }
 
   formatPriceChange(change) {
