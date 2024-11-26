@@ -1,185 +1,178 @@
 // src/services/priceService.js
-import axios from 'axios';
-
+//test
 class PriceService {
-  constructor() {
-    // Use proxied endpoint
-    this.baseUrl = '/api/coingecko';
-    
-    this.tokenMap = {
-      // Ethereum tokens
-      '0x6982508145454ce325ddbe47a25d4ec3d2311933': {
-        id: 'pepe',
-        platform: 'ethereum',
-        memeIds: [1, 2, 4]
-      },
-      '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce': {
-        id: 'shiba-inu',
-        platform: 'ethereum',
-        memeIds: [15]
-      },
-      '0xcf0c122c6b73ff809c693db761e7baebe62b6a2e': {
-        id: 'floki',
-        platform: 'ethereum',
-        memeIds: [18]
-      },
-      // Solana tokens
-      '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr': {
-        id: 'popcat',
-        platform: 'solana',
-        memeIds: [8, 10, 11, 12, 13, 14]
-      },
-      '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump': {
-        id: 'peanut-the-squirrel',
-        platform: 'solana',
-        memeIds: [3, 5, 6, 7, 9]
-      },
-      'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263': {
-        id: 'bonk',
-        platform: 'solana',
-        memeIds: [16]
-      },
-      'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm': {
-        id: 'dogwifhat',
-        platform: 'solana',
-        memeIds: [17]
-      },
-      'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump': {
-        id: 'goatseus-maximus',
-        platform: 'solana',
-        memeIds: [20]
-      },
-      // Base tokens
-      '0x532f27101965dd16442e59d40670faf5ebb142e4': {
-        id: 'based-brett',
-        platform: 'base',
-        memeIds: [19]
-      }
-    };
-
-    this.memeIdToContract = {};
-    Object.entries(this.tokenMap).forEach(([contract, info]) => {
-      info.memeIds.forEach(memeId => {
-        this.memeIdToContract[memeId] = contract;
-      });
-    });
-  }
-
-  cache = new Map();
-  cacheTimeout = 300000; // 5 minutes
-
-  async getTokenDataByMemeId(memeId) {
-    const contract = this.memeIdToContract[memeId];
-    if (!contract) {
-      console.warn('No contract found for meme ID:', memeId);
-      return null;
-    }
-    return this.getTokenData(contract);
-  }
-
-  async getTokenData(contractAddress) {
-    const tokenInfo = this.tokenMap[contractAddress];
-    if (!tokenInfo) {
-      console.warn('Token not found in mapping:', contractAddress);
-      return null;
-    }
-
-    const cacheKey = `${tokenInfo.platform}-${contractAddress}`;
-    
-    if (this.cache.has(cacheKey)) {
-      const cachedData = this.cache.get(cacheKey);
-      if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
-        return cachedData.data;
-      }
-    }
-
-    try {
-      console.log(`Fetching data for ${tokenInfo.id} (${tokenInfo.platform})`);
-
-      // Use separate endpoint for market data
-      const response = await axios.get(`${this.baseUrl}/coins/${tokenInfo.id}`, {
-        params: {
-          localization: false,
-          tickers: false,
-          market_data: true,
-          community_data: false,
-          developer_data: false,
-          sparkline: false
-        }
-      });
-
-      if (!response.data || !response.data.market_data) {
-        throw new Error(`No data returned for ${tokenInfo.id}`);
-      }
-
-      const marketData = response.data.market_data;
+    constructor() {
+      // Using simpler API endpoint
+      this.baseUrl = 'https://api.coingecko.com/api/v3';
       
-      const data = {
-        price: this.formatPrice(marketData.current_price.usd, tokenInfo.platform),
-        marketCap: this.formatMarketCap(marketData.market_cap.usd),
-        priceChange24h: this.formatPriceChange(marketData.price_change_percentage_24h),
-        volume24h: this.formatMarketCap(marketData.total_volume.usd),
+      // Map tokens to CoinGecko IDs (using exact CoinGecko IDs)
+      this.coinMap = {
+        'wif-dogwifhat': {  // Updated ID
+          memeIds: [17],
+          contract: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'
+        },
+        pepe: {
+          memeIds: [1, 2, 4],
+          contract: '0x6982508145454ce325ddbe47a25d4ec3d2311933'
+        },
+        'peanut-the-squirrel': {
+          memeIds: [3, 5, 6, 7, 9],
+          contract: '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump'
+        },
+        'popcat-sols': {  // Updated ID
+          memeIds: [8, 10, 11, 12, 13, 14],
+          contract: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr'
+        },
+        bonk: {
+          memeIds: [16],
+          contract: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
+        },
+        'shiba-inu': {
+          memeIds: [15],
+          contract: '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce'
+        },
+        floki: {
+          memeIds: [18],
+          contract: '0xcf0c122c6b73ff809c693db761e7baebe62b6a2e'
+        },
+        'based-finance': {  // Updated ID
+          memeIds: [19],
+          contract: '0x532f27101965dd16442e59d40670faf5ebb142e4'
+        },
+        'goatseus-maximus-sol': {  // Updated ID
+          memeIds: [20],
+          contract: 'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump'
+        }
+      };
+  
+      // Create reverse mapping
+      this.memeToToken = {};
+      Object.entries(this.coinMap).forEach(([token, info]) => {
+        info.memeIds.forEach(memeId => {
+          this.memeToToken[memeId] = token;
+        });
+      });
+    }
+  
+    cache = new Map();
+    cacheTimeout = 300000; // 5 minutes
+  
+    async getTokenDataByMemeId(memeId) {
+      try {
+        const tokenId = this.memeToToken[memeId];
+        if (!tokenId) {
+          console.warn('No token found for meme ID:', memeId);
+          return null;
+        }
+        return await this.fetchTokenData(tokenId);
+      } catch (error) {
+        console.error('Error in getTokenDataByMemeId:', error);
+        return null;
+      }
+    }
+  
+    async fetchTokenData(tokenId) {
+      try {
+        // Check cache first
+        if (this.cache.has(tokenId)) {
+          const cachedData = this.cache.get(tokenId);
+          if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
+            console.log(`Using cached data for ${tokenId}`);
+            return cachedData.data;
+          }
+        }
+  
+        console.log(`Fetching fresh data for ${tokenId}`);
+  
+        // Use the /coins endpoint for more detailed data
+        const url = `${this.baseUrl}/coins/${tokenId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        
+        if (!data.market_data) {
+          throw new Error('No market data available');
+        }
+  
+        const formatted = {
+          price: this.formatPrice(data.market_data.current_price.usd),
+          marketCap: this.formatMarketCap(data.market_data.market_cap.usd),
+          priceChange24h: this.formatPriceChange(data.market_data.price_change_percentage_24h),
+          timestamp: Date.now()
+        };
+  
+        // Update cache
+        this.cache.set(tokenId, {
+          data: formatted,
+          timestamp: Date.now()
+        });
+  
+        console.log(`Formatted data for ${tokenId}:`, formatted);
+        return formatted;
+  
+      } catch (error) {
+        console.error(`Error fetching data for ${tokenId}:`, error);
+        return this.fallbackToStaticData(tokenId);
+      }
+    }
+  
+    fallbackToStaticData(tokenId) {
+      // Return cached data if available
+      if (this.cache.has(tokenId)) {
+        return this.cache.get(tokenId).data;
+      }
+  
+      // Default static data as last resort
+      return {
+        price: '0.00',
+        marketCap: '0',
+        priceChange24h: '0.00',
         timestamp: Date.now()
       };
-
-      console.log(`Formatted data for ${tokenInfo.id}:`, data);
-
-      this.cache.set(cacheKey, {
-        data,
-        timestamp: Date.now()
-      });
-
-      return data;
-    } catch (error) {
-      console.error(`Error fetching ${tokenInfo.id} data:`, error.message);
-      return this.cache.get(cacheKey)?.data || null;
     }
-  }
-
-  formatPrice(price, platform) {
-    if (typeof price !== 'number' || isNaN(price)) {
-      return '0';
-    }
-    
-    if (price < 0.0001) {
-      return price.toFixed(8);
-    } else if (price < 0.01) {
-      return price.toFixed(6);
-    } else {
+  
+    formatPrice(price) {
+      if (!price) return '0';
+      if (price < 0.0001) {
+        return price.toFixed(8);
+      } else if (price < 0.01) {
+        return price.toFixed(6);
+      }
       return price.toFixed(2);
     }
-  }
-
-  formatPriceChange(change) {
-    if (typeof change !== 'number' || isNaN(change)) {
-      return '0.00';
+  
+    formatPriceChange(change) {
+      if (!change) return '0.00';
+      return change.toFixed(2);
     }
-    return change.toFixed(2);
-  }
-
-  formatMarketCap(value) {
-    if (typeof value !== 'number' || isNaN(value)) {
-      return '0';
+  
+    formatMarketCap(value) {
+      if (!value) return '0';
+      if (value >= 1e9) {
+        return `${(value / 1e9).toFixed(1)}B`;
+      } else if (value >= 1e6) {
+        return `${(value / 1e6).toFixed(1)}M`;
+      } else if (value >= 1e3) {
+        return `${(value / 1e3).toFixed(1)}K`;
+      }
+      return value.toFixed(2);
     }
-    
-    const bn = 1000000000;
-    const mn = 1000000;
-    const kn = 1000;
-    
-    if (value >= bn) {
-      return `${(value / bn).toFixed(1)}B`;
-    } else if (value >= mn) {
-      return `${(value / mn).toFixed(1)}M`;
-    } else if (value >= kn) {
-      return `${(value / kn).toFixed(1)}K`;
+  
+    clearCache() {
+      this.cache.clear();
+      console.log('Cache cleared');
     }
-    return value.toFixed(2);
   }
-
-  clearCache() {
-    this.cache.clear();
-    console.log('Cache cleared');
-  }
-}
-
-export const priceService = new PriceService();
+  
+  export const priceService = new PriceService();
