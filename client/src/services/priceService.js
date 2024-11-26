@@ -1,9 +1,12 @@
 // src/services/priceService.js
 class PriceService {
     constructor() {
-      this.baseUrl = 'https://api.coingecko.com/api/v3';
-      
-      // Token mappings remain the same as before
+      // Use proxy endpoint for production, direct API for development
+      this.baseUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://api.coingecko.com/api/v3'
+        : '/api/coingecko';
+
+      // Token mappings remain the same
       this.tokens = {
         1: { id: 'pepe', network: 'ethereum' },
         2: { id: 'pepe', network: 'ethereum' },
@@ -28,41 +31,64 @@ class PriceService {
       };
 
       this.cache = new Map();
-      this.cacheTimeout = 60000; // 1 minute cache
+      this.cacheTimeout = 30000; // 30 seconds cache
       this.lastFetchTime = Date.now() - 10000;
-      this.minFetchInterval = 6000; // 6 seconds between calls
+      this.minFetchInterval = 3000; // 3 seconds between calls
+      this.pendingRequests = new Map();
     }
 
     async getTokenDataByMemeId(memeId) {
       const token = this.tokens[memeId];
       
       if (!token) {
-        console.log(`No CoinGecko mapping for meme ID: ${memeId}, using fallback`);
         return this.getFallbackDataForToken(memeId);
       }
 
-      // Check cache
+      // First, immediately return cached data if available
       const cachedData = this.cache.get(token.id);
       if (cachedData && Date.now() - cachedData.timestamp < this.cacheTimeout) {
         return cachedData.data;
       }
 
-      // Check rate limiting
+      // Return fallback data immediately while fetching fresh data
+      const fallbackData = this.getFallbackDataForToken(memeId);
+      
+      // Check if there's already a pending request for this token
+      if (this.pendingRequests.has(token.id)) {
+        return this.pendingRequests.get(token.id);
+      }
+
+      // Create new request promise
+      const requestPromise = this.fetchTokenData(token.id, memeId);
+      this.pendingRequests.set(token.id, requestPromise);
+
+      try {
+        const result = await requestPromise;
+        this.pendingRequests.delete(token.id);
+        return result;
+      } catch (error) {
+        this.pendingRequests.delete(token.id);
+        return fallbackData;
+      }
+    }
+
+    async fetchTokenData(tokenId, memeId) {
       const now = Date.now();
-      if (now - this.lastFetchTime < this.minFetchInterval) {
-        return cachedData?.data || this.getFallbackDataForToken(memeId);
+      const timeSinceLastFetch = now - this.lastFetchTime;
+      
+      if (timeSinceLastFetch < this.minFetchInterval) {
+        await new Promise(resolve => setTimeout(resolve, this.minFetchInterval - timeSinceLastFetch));
       }
 
       try {
-        this.lastFetchTime = now;
+        this.lastFetchTime = Date.now();
 
-        // Using free CoinGecko API endpoint
         const response = await fetch(
-          `${this.baseUrl}/simple/price?ids=${token.id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
+          `${this.baseUrl}/simple/price?ids=${tokenId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
           {
             headers: {
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              'Cache-Control': 'no-cache'
             }
           }
         );
@@ -73,11 +99,11 @@ class PriceService {
 
         const data = await response.json();
         
-        if (!data[token.id]) {
+        if (!data[tokenId]) {
           throw new Error('No data returned for token');
         }
 
-        const tokenData = data[token.id];
+        const tokenData = data[tokenId];
         const formatted = {
           price: this.formatPrice(tokenData.usd),
           marketCap: this.formatMarketCap(tokenData.usd_market_cap),
@@ -86,7 +112,7 @@ class PriceService {
         };
 
         // Update cache
-        this.cache.set(token.id, {
+        this.cache.set(tokenId, {
           data: formatted,
           timestamp: now
         });
