@@ -16,10 +16,17 @@ import { priceService } from './services/priceService';
 const LoadingScreen = () => {
   return (
     <div className="fixed inset-0 bg-[#1a1b1e] flex flex-col items-center justify-center">
-      {/* You can replace this div with your image once you have it */}
+      {/* Custom loading image */}
       <div className="mb-8">
-        <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+        <img 
+          src="/loading.png" 
+          alt="Loading"
+          className="w-[200px] h-[200px] object-contain animate-pulse"
+          draggable="false"
+        />
       </div>
+      
+      {/* Progress bar and text */}
       <div className="text-center px-4">
         <div className="w-48 h-2 bg-gray-800 rounded-full overflow-hidden">
           <div className="h-full bg-green-500 animate-load-progress" />
