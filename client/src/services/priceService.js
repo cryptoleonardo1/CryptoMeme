@@ -5,11 +5,19 @@ class PriceService {
   constructor() {
     this.coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
     
-    // Updated token mapping with correct IDs
+    // Updated token mapping with all tokens
     this.tokenMap = {
       // Ethereum tokens
       '0x6982508145454ce325ddbe47a25d4ec3d2311933': {
         id: 'pepe',
+        platform: 'ethereum'
+      },
+      '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce': {
+        id: 'shiba-inu',
+        platform: 'ethereum'
+      },
+      '0xcf0c122c6b73ff809c693db761e7baebe62b6a2e': {
+        id: 'floki',
         platform: 'ethereum'
       },
       // Solana tokens
@@ -18,8 +26,25 @@ class PriceService {
         platform: 'solana'
       },
       '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump': {
-        id: 'peanut-the-squirrel',  // Updated ID for PNUT
+        id: 'peanut-the-squirrel',
         platform: 'solana'
+      },
+      'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263': {
+        id: 'bonk',
+        platform: 'solana'
+      },
+      'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm': {
+        id: 'dogwifhat',
+        platform: 'solana'
+      },
+      'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump': {
+        id: 'goatseus-maximus',
+        platform: 'solana'
+      },
+      // Base tokens
+      '0x532f27101965dd16442e59d40670faf5ebb142e4': {
+        id: 'based-brett',
+        platform: 'base'
       }
     };
   }
@@ -41,7 +66,8 @@ class PriceService {
     try {
       const tokenInfo = this.tokenMap[contractAddress];
       if (!tokenInfo) {
-        throw new Error('Token not found in mapping');
+        console.warn('Token not found in mapping:', contractAddress);
+        return null;
       }
 
       console.log('Fetching data for token:', tokenInfo.id);
@@ -59,14 +85,14 @@ class PriceService {
       
       // Format the data
       const data = {
-        price: this.formatPrice(tokenData.usd, network),
+        price: this.formatPrice(tokenData.usd, tokenInfo.platform),
         marketCap: this.formatMarketCap(tokenData.usd_market_cap),
         priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
         volume24h: this.formatMarketCap(tokenData.usd_24h_vol),
         timestamp: Date.now()
       };
 
-      console.log('Formatted data:', data);
+      console.log('Formatted data for', tokenInfo.id, ':', data);
 
       // Update cache
       this.cache.set(cacheKey, {
@@ -81,11 +107,11 @@ class PriceService {
     }
   }
 
-  formatPrice(price, network) {
+  formatPrice(price, platform) {
     if (!price) return '0';
     
-    // For very small numbers (like PEPE), use 8 decimals
-    if (network.toLowerCase() === 'ethereum' && price < 0.0001) {
+    // For very small numbers (like PEPE, SHIB, BONK), use 8 decimals
+    if ((platform === 'ethereum' || platform === 'solana') && price < 0.0001) {
       return price.toFixed(8);
     }
     
