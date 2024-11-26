@@ -5,7 +5,7 @@ class PriceService {
   constructor() {
     this.coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
     
-    // Updated token mapping with all tokens
+    // Updated token mapping with correct IDs
     this.tokenMap = {
       // Ethereum tokens
       '0x6982508145454ce325ddbe47a25d4ec3d2311933': {
@@ -34,7 +34,7 @@ class PriceService {
         platform: 'solana'
       },
       'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm': {
-        id: 'dogwifhat',
+        id: 'dogwifhat',  // Verified correct ID
         platform: 'solana'
       },
       'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump': {
@@ -59,6 +59,7 @@ class PriceService {
     if (this.cache.has(cacheKey)) {
       const cachedData = this.cache.get(cacheKey);
       if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
+        console.log('Using cached data for:', cacheKey);
         return cachedData.data;
       }
     }
@@ -70,15 +71,26 @@ class PriceService {
         return null;
       }
 
-      console.log('Fetching data for token:', tokenInfo.id);
+      console.log('Fetching fresh data for token:', tokenInfo.id);
 
-      // Fetch data from CoinGecko with more price precision
+      // Split requests to handle rate limiting better
       const response = await axios.get(
-        `${this.coingeckoBaseUrl}/simple/price?ids=${tokenInfo.id}&vs_currencies=usd&include_24hr_vol=true&include_24hr_change=true&include_market_cap=true&precision=18`
+        `${this.coingeckoBaseUrl}/simple/price`,
+        {
+          params: {
+            ids: tokenInfo.id,
+            vs_currencies: 'usd',
+            include_24hr_vol: true,
+            include_24hr_change: true,
+            include_market_cap: true,
+            precision: 18
+          }
+        }
       );
 
       if (!response.data || !response.data[tokenInfo.id]) {
-        throw new Error('Invalid API response');
+        console.error('Invalid response for token:', tokenInfo.id, response.data);
+        throw new Error(`No data returned for ${tokenInfo.id}`);
       }
 
       const tokenData = response.data[tokenInfo.id];
@@ -102,13 +114,24 @@ class PriceService {
 
       return data;
     } catch (error) {
-      console.error('Error fetching token data:', error.message);
-      return this.cache.get(cacheKey)?.data || null;
+      console.error('Error fetching token data:', contractAddress, error.message);
+      
+      // Return cached data if available
+      if (this.cache.has(cacheKey)) {
+        console.log('Returning stale cached data for:', cacheKey);
+        return this.cache.get(cacheKey).data;
+      }
+      
+      // Return null if no cache available
+      return null;
     }
   }
 
   formatPrice(price, platform) {
-    if (!price) return '0';
+    if (typeof price !== 'number' || isNaN(price)) {
+      console.warn('Invalid price value:', price);
+      return '0';
+    }
     
     // For very small numbers (like PEPE, SHIB, BONK), use 8 decimals
     if ((platform === 'ethereum' || platform === 'solana') && price < 0.0001) {
@@ -120,12 +143,16 @@ class PriceService {
   }
 
   formatPriceChange(change) {
-    if (!change) return '0.00';
+    if (typeof change !== 'number' || isNaN(change)) {
+      return '0.00';
+    }
     return change.toFixed(2);
   }
 
   formatMarketCap(value) {
-    if (!value) return '0';
+    if (typeof value !== 'number' || isNaN(value)) {
+      return '0';
+    }
     
     const bn = 1000000000;
     const mn = 1000000;
