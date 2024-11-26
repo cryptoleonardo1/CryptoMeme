@@ -5,7 +5,7 @@ class PriceService {
   constructor() {
     this.coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
     
-    // Map our tokens to CoinGecko IDs
+    // Updated token mapping with correct IDs
     this.tokenMap = {
       // Ethereum tokens
       '0x6982508145454ce325ddbe47a25d4ec3d2311933': {
@@ -18,7 +18,7 @@ class PriceService {
         platform: 'solana'
       },
       '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump': {
-        id: 'peanut',
+        id: 'peanut-the-squirrel',  // Updated ID for PNUT
         platform: 'solana'
       }
     };
@@ -44,9 +44,11 @@ class PriceService {
         throw new Error('Token not found in mapping');
       }
 
-      // Fetch data from CoinGecko
+      console.log('Fetching data for token:', tokenInfo.id);
+
+      // Fetch data from CoinGecko with more price precision
       const response = await axios.get(
-        `${this.coingeckoBaseUrl}/simple/price?ids=${tokenInfo.id}&vs_currencies=usd&include_24hr_vol=true&include_24hr_change=true&include_market_cap=true`
+        `${this.coingeckoBaseUrl}/simple/price?ids=${tokenInfo.id}&vs_currencies=usd&include_24hr_vol=true&include_24hr_change=true&include_market_cap=true&precision=18`
       );
 
       if (!response.data || !response.data[tokenInfo.id]) {
@@ -63,6 +65,8 @@ class PriceService {
         volume24h: this.formatMarketCap(tokenData.usd_24h_vol),
         timestamp: Date.now()
       };
+
+      console.log('Formatted data:', data);
 
       // Update cache
       this.cache.set(cacheKey, {
@@ -113,6 +117,7 @@ class PriceService {
 
   clearCache() {
     this.cache.clear();
+    console.log('Cache cleared');
   }
 }
 
