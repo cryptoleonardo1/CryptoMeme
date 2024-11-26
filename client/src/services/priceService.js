@@ -1,9 +1,12 @@
 // src/services/priceService.js
 class PriceService {
     constructor() {
-      this.baseUrl = '/api/coingecko';
+      // For development, use proxy. For production, use direct CoinGecko URL
+      this.baseUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://api.coingecko.com/api/v3'
+        : '/api/coingecko';
       
-      // Create a map of unique tokens to fetch (removing duplicates)
+      // Token mappings remain the same
       this.uniqueTokens = {
         'pepe': ['1', '2', '4'],
         'peanut-the-squirrel': ['3', '5', '6', '7', '9'],
@@ -17,82 +20,97 @@ class PriceService {
       };
 
       this.cache = new Map();
-      this.cacheTimeout = 3600000; // 1 hour cache
-      this.isInitialDataLoaded = false;
-      this.lastBatchLoadTime = 0;
+      this.cacheTimeout = 3600000; // 1 hour
+      this.loadingPromise = null;
     }
 
     async initializeData() {
-      if (this.isInitialDataLoaded && Date.now() - this.lastBatchLoadTime < this.cacheTimeout) {
-        return;
+      // If already loading, return existing promise
+      if (this.loadingPromise) {
+        return this.loadingPromise;
       }
 
-      try {
-        // Get all unique token IDs
-        const tokenIds = Object.keys(this.uniqueTokens).join(',');
-        
-        console.log('Loading initial price data...');
-        const response = await fetch(
-          `${this.baseUrl}/simple/price?ids=${tokenIds}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
-          {
-            headers: {
-              'Accept': 'application/json'
+      this.loadingPromise = (async () => {
+        try {
+          const tokenIds = Object.keys(this.uniqueTokens).join(',');
+          console.log('Starting initial data load...');
+
+          const response = await fetch(
+            `${this.baseUrl}/simple/price?ids=${tokenIds}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`,
+            {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
             }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
-        );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+          const data = await response.json();
+          const now = Date.now();
 
-        const data = await response.json();
-        const now = Date.now();
+          console.log('Received data:', data);
 
-        // Process and cache data for each token
-        Object.entries(data).forEach(([tokenId, tokenData]) => {
-          const formatted = {
-            price: this.formatPrice(tokenData.usd),
-            marketCap: this.formatMarketCap(tokenData.usd_market_cap),
-            priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
-            timestamp: now
-          };
-
-          // Cache the data for all meme IDs that use this token
-          this.uniqueTokens[tokenId].forEach(memeId => {
-            this.cache.set(memeId, {
-              data: formatted,
+          // Process each token's data
+          Object.entries(data).forEach(([tokenId, tokenData]) => {
+            const formatted = {
+              price: this.formatPrice(tokenData.usd),
+              marketCap: this.formatMarketCap(tokenData.usd_market_cap),
+              priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
               timestamp: now
+            };
+
+            // Cache data for all meme IDs using this token
+            this.uniqueTokens[tokenId].forEach(memeId => {
+              this.cache.set(memeId, {
+                data: formatted,
+                timestamp: now
+              });
             });
           });
-        });
 
-        this.isInitialDataLoaded = true;
-        this.lastBatchLoadTime = now;
-        console.log('Initial price data loaded successfully');
-      } catch (error) {
-        console.warn('Failed to load initial price data:', error);
-        // Load fallback data for all tokens
-        this.loadAllFallbackData();
-      }
+          console.log('Data load completed successfully');
+          return true;
+
+        } catch (error) {
+          console.error('Failed to load price data:', error);
+          this.loadAllFallbackData();
+          return false;
+        } finally {
+          // Clear the loading promise after completion
+          this.loadingPromise = null;
+        }
+      })();
+
+      return this.loadingPromise;
     }
 
     loadAllFallbackData() {
-      const dummyMemes = require('../data/dummyMemes').default;
-      const now = Date.now();
+      console.log('Loading fallback data...');
+      try {
+        const dummyMemes = require('../data/dummyMemes').default;
+        const now = Date.now();
 
-      dummyMemes.forEach(meme => {
-        if (meme.projectDetails) {
-          this.cache.set(meme.id.toString(), {
-            data: {
-              price: meme.projectDetails.price,
-              marketCap: meme.projectDetails.marketCap,
-              priceChange24h: Number(meme.projectDetails.priceChange24h) || 0,
+        dummyMemes.forEach(meme => {
+          if (meme?.projectDetails) {
+            this.cache.set(meme.id.toString(), {
+              data: {
+                price: meme.projectDetails.price,
+                marketCap: meme.projectDetails.marketCap,
+                priceChange24h: Number(meme.projectDetails.priceChange24h) || 0,
+                timestamp: now
+              },
               timestamp: now
-            },
-            timestamp: now
-          });
-        }
-      });
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Error loading fallback data:', e);
+      }
     }
 
     getTokenDataByMemeId(memeId) {
@@ -100,9 +118,32 @@ class PriceService {
       if (cachedData) {
         return cachedData.data;
       }
-
-      // If no cached data, return fallback data
       return this.getFallbackDataForToken(memeId);
+    }
+
+    getFallbackDataForToken(memeId) {
+      try {
+        const dummyMemes = require('../data/dummyMemes').default;
+        const meme = dummyMemes.find(m => m.id === Number(memeId));
+        
+        if (meme?.projectDetails) {
+          return {
+            price: meme.projectDetails.price,
+            marketCap: meme.projectDetails.marketCap,
+            priceChange24h: Number(meme.projectDetails.priceChange24h) || 0,
+            timestamp: Date.now()
+          };
+        }
+      } catch (e) {
+        console.warn('Failed to load fallback data:', e);
+      }
+
+      return {
+        price: '0.00',
+        marketCap: '0',
+        priceChange24h: 0,
+        timestamp: Date.now()
+      };
     }
 
     formatPrice(price) {
@@ -137,10 +178,9 @@ class PriceService {
 // Create single instance
 const priceService = new PriceService();
 
-// Initialize data loading when the service is created
+// Make it available globally for debugging
 if (typeof window !== 'undefined') {
   window.priceService = priceService;
-  priceService.initializeData();
 }
 
 export { priceService };
