@@ -8,7 +8,10 @@ module.exports = function(app) {
       target: 'https://api.coingecko.com/api/v3',
       changeOrigin: true,
       pathRewrite: {
-        '^/api/coingecko': '/'
+        '^/api/coingecko': ''
+      },
+      onProxyRes: function (proxyRes, req, res) {
+        proxyRes.headers['Access-Control-Allow-Origin'] = '*';
       }
     })
   );

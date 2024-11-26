@@ -3,15 +3,15 @@ import axios from 'axios';
 
 class PriceService {
   constructor() {
-    this.coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
+    // Use proxied endpoint
+    this.baseUrl = '/api/coingecko';
     
-    // Map contract addresses to CoinGecko IDs with additional meme IDs
     this.tokenMap = {
       // Ethereum tokens
       '0x6982508145454ce325ddbe47a25d4ec3d2311933': {
         id: 'pepe',
         platform: 'ethereum',
-        memeIds: [1, 2, 4]  // Add all meme IDs that use this token
+        memeIds: [1, 2, 4]
       },
       '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce': {
         id: 'shiba-inu',
@@ -27,12 +27,12 @@ class PriceService {
       '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr': {
         id: 'popcat',
         platform: 'solana',
-        memeIds: [8, 10, 11, 12, 13, 14]  // All Popcat meme IDs
+        memeIds: [8, 10, 11, 12, 13, 14]
       },
       '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump': {
         id: 'peanut-the-squirrel',
         platform: 'solana',
-        memeIds: [3, 5, 6, 7, 9]  // All PNUT meme IDs
+        memeIds: [3, 5, 6, 7, 9]
       },
       'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263': {
         id: 'bonk',
@@ -57,7 +57,6 @@ class PriceService {
       }
     };
 
-    // Reverse mapping for meme IDs to contract addresses
     this.memeIdToContract = {};
     Object.entries(this.tokenMap).forEach(([contract, info]) => {
       info.memeIds.forEach(memeId => {
@@ -67,7 +66,7 @@ class PriceService {
   }
 
   cache = new Map();
-  cacheTimeout = 300000; // 5 minutes cache
+  cacheTimeout = 300000; // 5 minutes
 
   async getTokenDataByMemeId(memeId) {
     const contract = this.memeIdToContract[memeId];
@@ -87,7 +86,6 @@ class PriceService {
 
     const cacheKey = `${tokenInfo.platform}-${contractAddress}`;
     
-    // Check cache
     if (this.cache.has(cacheKey)) {
       const cachedData = this.cache.get(cacheKey);
       if (Date.now() - cachedData.timestamp < this.cacheTimeout) {
@@ -98,39 +96,34 @@ class PriceService {
     try {
       console.log(`Fetching data for ${tokenInfo.id} (${tokenInfo.platform})`);
 
-      const response = await axios.get(
-        `${this.coingeckoBaseUrl}/simple/price`,
-        {
-          params: {
-            ids: tokenInfo.id,
-            vs_currencies: 'usd',
-            include_24hr_vol: true,
-            include_24hr_change: true,
-            include_market_cap: true,
-            precision: 18
-          },
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
+      // Use separate endpoint for market data
+      const response = await axios.get(`${this.baseUrl}/coins/${tokenInfo.id}`, {
+        params: {
+          localization: false,
+          tickers: false,
+          market_data: true,
+          community_data: false,
+          developer_data: false,
+          sparkline: false
         }
-      );
+      });
 
-      if (!response.data || !response.data[tokenInfo.id]) {
+      if (!response.data || !response.data.market_data) {
         throw new Error(`No data returned for ${tokenInfo.id}`);
       }
 
-      const tokenData = response.data[tokenInfo.id];
+      const marketData = response.data.market_data;
       
       const data = {
-        price: this.formatPrice(tokenData.usd, tokenInfo.platform),
-        marketCap: this.formatMarketCap(tokenData.usd_market_cap),
-        priceChange24h: this.formatPriceChange(tokenData.usd_24h_change),
-        volume24h: this.formatMarketCap(tokenData.usd_24h_vol),
+        price: this.formatPrice(marketData.current_price.usd, tokenInfo.platform),
+        marketCap: this.formatMarketCap(marketData.market_cap.usd),
+        priceChange24h: this.formatPriceChange(marketData.price_change_percentage_24h),
+        volume24h: this.formatMarketCap(marketData.total_volume.usd),
         timestamp: Date.now()
       };
 
-      // Update cache
+      console.log(`Formatted data for ${tokenInfo.id}:`, data);
+
       this.cache.set(cacheKey, {
         data,
         timestamp: Date.now()
@@ -148,7 +141,6 @@ class PriceService {
       return '0';
     }
     
-    // For very small numbers
     if (price < 0.0001) {
       return price.toFixed(8);
     } else if (price < 0.01) {
