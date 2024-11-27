@@ -12,7 +12,12 @@ const interactionRoutes = require('./routes/interactionRoutes');
 const app = express();
 
 // Middleware
-app.use(cors());
+// Enable CORS for all routes
+app.use(cors({
+    origin: '*', // For development. In production, specify your domain
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

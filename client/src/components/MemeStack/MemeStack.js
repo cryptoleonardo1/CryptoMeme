@@ -12,29 +12,47 @@ const MemeStack = ({ memes, onMemeChange }) => {
   // Function to update user points and meme stats
   const updateStats = async (action, memeId) => {
     try {
-      const response = await fetch('/api/interactions/update', {
+      console.log('Sending interaction:', { action, memeId }); // Debug log
+      const response = await fetch('http://localhost:3001/api/interactions/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           action,
-          memeId,
+          memeId: memeId.toString(), // Ensure memeId is a string
           telegramId: window.Telegram.WebApp.initDataUnsafe?.user?.id,
         }),
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Server error:', errorData);
         throw new Error('Failed to update stats');
       }
 
       const data = await response.json();
+      console.log('Response:', data); // Debug log
+      
+      // Update the meme's stats locally
+      if (data.meme) {
+        setCurrentMeme(prev => ({
+          ...prev,
+          engagement: {
+            ...prev.engagement,
+            likes: data.meme.likes,
+            superLikes: data.meme.superLikes
+          }
+        }));
+      }
+      
       return data;
     } catch (error) {
       console.error('Error updating stats:', error);
       return null;
     }
   };
+
 
   // Function to select a random meme based on weight
   const getWeightedRandomMeme = () => {

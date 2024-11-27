@@ -1,4 +1,3 @@
-//server/src/controllers/interactionController.js
 const User = require('../models/User');
 const Meme = require('../models/Meme');
 const PointsTransaction = require('../models/Points');
@@ -6,39 +5,60 @@ const ViewHistory = require('../models/ViewHistory');
 
 exports.updateInteraction = async (req, res) => {
   try {
+    console.log('Received interaction:', req.body); // Debug log
     const { action, memeId, telegramId } = req.body;
     
+    // Find user and meme
     const user = await User.findOne({ telegramId });
     const meme = await Meme.findById(memeId);
 
-    if (!user || !meme) {
-      return res.status(404).json({ message: 'User or meme not found' });
+    if (!user) {
+      console.log('User not found:', telegramId);
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    if (!meme) {
+      console.log('Meme not found:', memeId);
+      return res.status(404).json({ message: 'Meme not found' });
     }
 
+    // Initialize engagement if it doesn't exist
+    if (!meme.engagement) {
+      meme.engagement = {
+        likes: 0,
+        dislikes: 0,
+        superLikes: 0,
+        views: 0
+      };
+    }
+
+    // Determine points and update engagement
     let points = 0;
     switch (action) {
       case 'like':
         points = 1;
-        meme.engagement.likes += 1;
+        meme.engagement.likes = (meme.engagement.likes || 0) + 1;
         break;
       case 'dislike':
         points = 1;
-        meme.engagement.dislikes += 1;
+        meme.engagement.dislikes = (meme.engagement.dislikes || 0) + 1;
         break;
       case 'superlike':
         points = 3;
-        meme.engagement.superLikes += 1;
+        meme.engagement.superLikes = (meme.engagement.superLikes || 0) + 1;
         break;
       default:
         return res.status(400).json({ message: 'Invalid action' });
     }
 
     // Update user points
-    user.points += points;
-    user.totalPoints += points;
-    user.statistics[action === 'superlike' ? 'superLikes' : 'likes'] += 1;
+    user.points = (user.points || 0) + points;
+    user.totalPoints = (user.totalPoints || 0) + points;
+    user.statistics = user.statistics || {};
+    user.statistics[action === 'superlike' ? 'superLikes' : 'likes'] = 
+      (user.statistics[action === 'superlike' ? 'superLikes' : 'likes'] || 0) + 1;
 
-    // Create transaction record
+    // Create points transaction
     await PointsTransaction.create({
       user: user._id,
       amount: points,
@@ -47,25 +67,19 @@ exports.updateInteraction = async (req, res) => {
       relatedEntity: {
         entityType: 'meme',
         entityId: meme._id
-      }
+      },
+      description: `Earned points for ${action} on ${meme.projectName}`
     });
 
-    // Update view history
-    await ViewHistory.findOneAndUpdate(
-      { user: user._id, meme: meme._id },
-      {
-        $push: { interactions: { type: action } },
-        $inc: { viewCount: 1 },
-        lastViewed: new Date()
-      },
-      { upsert: true }
-    );
-
+    // Save updates
     await Promise.all([user.save(), meme.save()]);
+
+    console.log('Updated meme engagement:', meme.engagement); // Debug log
 
     res.json({
       success: true,
       meme: {
+        id: meme._id,
         likes: meme.engagement.likes,
         superLikes: meme.engagement.superLikes
       },
@@ -82,6 +96,8 @@ exports.updateInteraction = async (req, res) => {
 
 exports.getLeaderboard = async (req, res) => {
   try {
+    console.log('Fetching leaderboard data'); // Debug log
+    
     // Get top 20 users
     const users = await User.find()
       .sort('-totalPoints')
@@ -117,28 +133,26 @@ exports.getLeaderboard = async (req, res) => {
       dailyPoints: dailyPointsMap.get(user._id.toString()) || 0
     }));
 
-    // Get top memes aggregated by project
+    // Get project stats with combined meme points
     const projectStats = await Meme.aggregate([
       {
         $group: {
           _id: '$projectName',
-          totalLikes: { $sum: '$engagement.likes' },
-          totalSuperLikes: { $sum: '$engagement.superLikes' },
           logo: { $first: '$logo' },
-          content: { $first: '$content' }
+          likes: { $sum: '$engagement.likes' },
+          superLikes: { $sum: '$engagement.superLikes' }
         }
       },
       {
         $project: {
           projectName: '$_id',
           logo: 1,
-          content: 1,
           engagement: {
-            likes: '$totalLikes',
-            superLikes: '$totalSuperLikes'
+            likes: '$likes',
+            superLikes: '$superLikes'
           },
           totalPoints: {
-            $add: ['$totalLikes', { $multiply: ['$totalSuperLikes', 3] }]
+            $add: ['$likes', { $multiply: ['$superLikes', 3] }]
           }
         }
       },
@@ -149,6 +163,8 @@ exports.getLeaderboard = async (req, res) => {
         $limit: 20
       }
     ]);
+
+    console.log('Leaderboard data:', { users: usersWithDaily.length, projects: projectStats.length }); // Debug log
 
     res.json({
       users: usersWithDaily,
