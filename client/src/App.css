@@ -1,70 +1,4 @@
-:root {
-  --primary: #FF3366;
-  --secondary: #6C63FF;
-  --background: #F8F9FF;
-  --text: #2D3436;
-  --accent: #00F5D4;
-}
-
-.App {
-  text-align: center;
-  background-color: var(--background);
-  min-height: 100vh;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-image {
-  max-width: none !important;
-  width: 100vw !important;
-  height: auto !important;
-  object-fit: cover !important;
-}
-
-/* Reset any potential constraints */
-.loading-screen-container {
-  width: 100vw;
-  height: 100vh;
-  max-width: 100vw;
-  max-height: 100vh;
-  overflow: hidden;
-  padding: 0;
-  margin: 0;
-}
-
+/* App.css */
 @keyframes load-progress {
   0% {
     width: 0%;
@@ -78,7 +12,6 @@
   animation: load-progress 3s ease-in-out infinite;
 }
 
-/* Reset any potential image constraints */
 img[src="/loading.png"] {
   max-width: none !important;
   width: 100% !important;

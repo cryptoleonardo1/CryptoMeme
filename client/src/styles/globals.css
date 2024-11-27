@@ -1,39 +1,8 @@
-// client/src/styles/globals.css
+/* client/src/styles/globals.css */
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-:root {
-  --primary: #FF3366;
-  --secondary: #6C63FF;
-  --background: #F8F9FF;
-  --text: #2D3436;
-  --accent: #00F5D4;
-}
-
 body {
-  background-color: var(--background);
-  color: var(--text);
   font-family: 'Inter', sans-serif;
 }
-
-// client/src/App.tsx
-import React from 'react';
-import { WebApp } from '@twa-dev/sdk';
-
-function App() {
-  React.useEffect(() => {
-    WebApp.ready();
-    WebApp.expand();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-md mx-auto px-4 py-6">
-        {/* Content will go here */}
-      </div>
-    </div>
-  );
-}
-
-export default App;
