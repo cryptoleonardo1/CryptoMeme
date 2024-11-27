@@ -1,23 +1,46 @@
+//MemeStack.js
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MemeCard from '../MemeCard/MemeCard';
 
 const MemeStack = ({ memes, onMemeChange }) => {
-  // Keep track of current and next meme
   const [currentMeme, setCurrentMeme] = React.useState(null);
   const [nextMeme, setNextMeme] = React.useState(null);
   const [lastSwipe, setLastSwipe] = React.useState(null);
   const [isAnimating, setIsAnimating] = React.useState(false);
 
+  // Function to update user points and meme stats
+  const updateStats = async (action, memeId) => {
+    try {
+      const response = await fetch('/api/interactions/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          memeId,
+          telegramId: window.Telegram.WebApp.initDataUnsafe?.user?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update stats');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating stats:', error);
+      return null;
+    }
+  };
+
   // Function to select a random meme based on weight
   const getWeightedRandomMeme = () => {
-    // Calculate total weight
     const totalWeight = memes.reduce((sum, meme) => sum + (meme.weight || 1), 0);
-    
-    // Generate a random number between 0 and total weight
     let random = Math.random() * totalWeight;
     
-    // Find the meme that corresponds to this random value
     for (const meme of memes) {
       random -= (meme.weight || 1);
       if (random <= 0) {
@@ -25,7 +48,6 @@ const MemeStack = ({ memes, onMemeChange }) => {
       }
     }
     
-    // Fallback to first meme (shouldn't happen unless array is empty)
     return memes[0];
   };
 
@@ -41,10 +63,29 @@ const MemeStack = ({ memes, onMemeChange }) => {
     }
   }, [memes]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSwipe = (direction) => {
+  const handleSwipe = async (direction) => {
     if (!isAnimating) {
       setIsAnimating(true);
       setLastSwipe(direction);
+
+      // Update points and stats based on swipe direction
+      let action;
+      switch (direction) {
+        case 'right':
+          action = 'like';
+          break;
+        case 'left':
+          action = 'dislike';
+          break;
+        case 'super':
+          action = 'superlike';
+          break;
+        default:
+          action = 'view';
+      }
+
+      // Update backend with the interaction
+      await updateStats(action, currentMeme.id);
 
       // Move to next meme and select new next meme
       setCurrentMeme(nextMeme);
@@ -58,7 +99,7 @@ const MemeStack = ({ memes, onMemeChange }) => {
     }
   };
 
-  // Animation variants for the swipe indicator
+  // Animation variants remain the same
   const indicatorVariants = {
     initial: {
       opacity: 0,
@@ -87,7 +128,6 @@ const MemeStack = ({ memes, onMemeChange }) => {
 
   return (
     <div className="relative max-w-[calc(100vw-32px)] mx-auto aspect-square">
-      {/* Swipe Indicator with enhanced animations */}
       <AnimatePresence>
         {lastSwipe && (
           <motion.div 
