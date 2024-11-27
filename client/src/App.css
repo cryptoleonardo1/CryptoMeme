@@ -46,3 +46,21 @@
     transform: rotate(360deg);
   }
 }
+
+.loading-image {
+  max-width: none !important;
+  width: 100vw !important;
+  height: auto !important;
+  object-fit: cover !important;
+}
+
+/* Reset any potential constraints */
+.loading-screen-container {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}

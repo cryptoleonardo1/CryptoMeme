@@ -50,18 +50,13 @@ function App() {
   useEffect(() => {
     async function initializeApp() {
       try {
-        // Initialize Telegram WebApp
         WebApp.ready();
         WebApp.expand();
-
-        // Load initial price data
-        console.log('Starting to load price data...');
-        const success = await priceService.initializeData();
-        console.log('Price data load completed:', success);
+        await priceService.initializeData();
       } catch (error) {
-        console.error('Error during initialization:', error);
+        console.error('Initialization error:', error);
       } finally {
-        // Ensure minimum loading time of 1.5 seconds for better UX
+        // Add small delay to ensure image is loaded
         setTimeout(() => {
           setIsLoading(false);
         }, 1500);
@@ -70,6 +65,16 @@ function App() {
 
     initializeApp();
   }, []);
+
+  if (isLoading) {
+    // Force full viewport dimensions during loading
+    return (
+      <div className="loading-screen-container">
+        <LoadingScreen />
+      </div>
+    );
+  }
+
 
   const renderContent = () => {
     switch (activeTab) {
