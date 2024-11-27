@@ -1,3 +1,4 @@
+//server/src/controllers/interactionController.js
 const User = require('../models/User');
 const Meme = require('../models/Meme');
 const PointsTransaction = require('../models/Points');
@@ -6,8 +7,7 @@ const ViewHistory = require('../models/ViewHistory');
 exports.updateInteraction = async (req, res) => {
   try {
     const { action, memeId, telegramId } = req.body;
-
-    // Find user and meme
+    
     const user = await User.findOne({ telegramId });
     const meme = await Meme.findById(memeId);
 
@@ -15,35 +15,30 @@ exports.updateInteraction = async (req, res) => {
       return res.status(404).json({ message: 'User or meme not found' });
     }
 
-    // Determine points based on action
     let points = 0;
-    let type = '';
     switch (action) {
       case 'like':
         points = 1;
-        type = 'likes';
         meme.engagement.likes += 1;
         break;
       case 'dislike':
         points = 1;
-        type = 'dislikes';
         meme.engagement.dislikes += 1;
         break;
       case 'superlike':
         points = 3;
-        type = 'superLikes';
         meme.engagement.superLikes += 1;
         break;
       default:
         return res.status(400).json({ message: 'Invalid action' });
     }
 
-    // Update user points and statistics
+    // Update user points
     user.points += points;
     user.totalPoints += points;
-    user.statistics[type] += 1;
+    user.statistics[action === 'superlike' ? 'superLikes' : 'likes'] += 1;
 
-    // Create points transaction
+    // Create transaction record
     await PointsTransaction.create({
       user: user._id,
       amount: points,
@@ -52,11 +47,10 @@ exports.updateInteraction = async (req, res) => {
       relatedEntity: {
         entityType: 'meme',
         entityId: meme._id
-      },
-      description: `Earned points for ${action} on meme`
+      }
     });
 
-    // Record interaction in view history
+    // Update view history
     await ViewHistory.findOneAndUpdate(
       { user: user._id, meme: meme._id },
       {
@@ -67,29 +61,35 @@ exports.updateInteraction = async (req, res) => {
       { upsert: true }
     );
 
-    // Save updates
     await Promise.all([user.save(), meme.save()]);
 
     res.json({
       success: true,
-      points: user.points,
-      totalPoints: user.totalPoints
+      meme: {
+        likes: meme.engagement.likes,
+        superLikes: meme.engagement.superLikes
+      },
+      user: {
+        points: user.points,
+        totalPoints: user.totalPoints
+      }
     });
   } catch (error) {
+    console.error('Interaction error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
 exports.getLeaderboard = async (req, res) => {
   try {
-    // Get top users
+    // Get top 20 users
     const users = await User.find()
       .sort('-totalPoints')
-      .limit(50)
-      .select('telegramId username totalPoints statistics')
+      .limit(20)
+      .select('telegramId username totalPoints')
       .lean();
 
-    // Calculate daily points for users
+    // Get daily points
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -111,26 +111,51 @@ exports.getLeaderboard = async (req, res) => {
       dailyPoints.map(item => [item._id.toString(), item.dailyPoints])
     );
 
+    // Add daily points to users
     const usersWithDaily = users.map(user => ({
       ...user,
       dailyPoints: dailyPointsMap.get(user._id.toString()) || 0
     }));
 
-    // Get top memes
-    const memes = await Meme.find()
-      .sort({
-        'engagement.superLikes': -1,
-        'engagement.likes': -1
-      })
-      .limit(50)
-      .select('projectName content engagement')
-      .lean();
+    // Get top memes aggregated by project
+    const projectStats = await Meme.aggregate([
+      {
+        $group: {
+          _id: '$projectName',
+          totalLikes: { $sum: '$engagement.likes' },
+          totalSuperLikes: { $sum: '$engagement.superLikes' },
+          logo: { $first: '$logo' },
+          content: { $first: '$content' }
+        }
+      },
+      {
+        $project: {
+          projectName: '$_id',
+          logo: 1,
+          content: 1,
+          engagement: {
+            likes: '$totalLikes',
+            superLikes: '$totalSuperLikes'
+          },
+          totalPoints: {
+            $add: ['$totalLikes', { $multiply: ['$totalSuperLikes', 3] }]
+          }
+        }
+      },
+      {
+        $sort: { totalPoints: -1 }
+      },
+      {
+        $limit: 20
+      }
+    ]);
 
     res.json({
       users: usersWithDaily,
-      memes
+      memes: projectStats
     });
   } catch (error) {
+    console.error('Leaderboard error:', error);
     res.status(500).json({ message: error.message });
   }
 };

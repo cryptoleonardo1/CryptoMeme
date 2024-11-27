@@ -6,15 +6,18 @@ const RanksPage = () => {
     memes: []
   });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('users'); // 'users' or 'memes'
-
+  const [activeTab, setActiveTab] = useState('users');
+  
+  // Refresh every 30 seconds to keep costs low while maintaining reasonable updates
   useEffect(() => {
     fetchLeaderboardData();
+    const interval = setInterval(fetchLeaderboardData, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchLeaderboardData = async () => {
     try {
-      const response = await fetch('/api/leaderboard');
+      const response = await fetch('http://localhost:3001/api/interactions/leaderboard');
       const data = await response.json();
       setLeaderboardData(data);
       setLoading(false);
@@ -22,6 +25,10 @@ const RanksPage = () => {
       console.error('Error fetching leaderboard data:', error);
       setLoading(false);
     }
+  };
+
+  const formatPoints = (points) => {
+    return Number(points).toLocaleString();
   };
 
   return (
@@ -33,16 +40,13 @@ const RanksPage = () => {
               <div className="w-12 h-12 rounded-full bg-[#2c2d31] flex items-center justify-center">
                 <span className="text-2xl">🏆</span>
               </div>
-              <h1 className="text-2xl font-bold text-white">
-                Leaderboard
-              </h1>
+              <h1 className="text-2xl font-bold text-white">Leaderboard</h1>
             </div>
           </div>
         </div>
       </div>
 
       <div className="pt-[72px] px-4">
-        {/* Tab Switcher */}
         <div className="flex rounded-lg overflow-hidden mb-4 bg-[#2c2d31]">
           <button
             className={`flex-1 py-2 px-4 ${activeTab === 'users' ? 'bg-[#3c3d41] text-white' : 'text-gray-400'}`}
@@ -63,43 +67,53 @@ const RanksPage = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
           </div>
         ) : activeTab === 'users' ? (
-          <div className="space-y-4">
-            {leaderboardData.users.map((user, index) => (
+          <div className="space-y-2">
+            {leaderboardData.users.slice(0, 20).map((user, index) => (
               <div
                 key={user._id}
                 className="flex items-center gap-4 bg-[#2c2d31] p-4 rounded-lg"
               >
-                <div className="w-8 h-8 flex items-center justify-center">
+                <div className="w-8 flex-shrink-0 text-center">
                   <span className="text-xl">
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
                   </span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-white font-medium">{user.username || `User ${user.telegramId}`}</h3>
-                  <p className="text-sm text-gray-400">{user.totalPoints} points</p>
+                  <h3 className="text-white font-medium">
+                    {user.username || `User ${user.telegramId?.slice(-4)}`}
+                  </h3>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-400">Today: +{user.dailyPoints}</p>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-white font-medium">{formatPoints(user.totalPoints)} pts</p>
+                  <p className="text-xs text-green-400">+{formatPoints(user.dailyPoints)} today</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="space-y-4">
-            {leaderboardData.memes.map((meme, index) => (
+          <div className="space-y-2">
+            {leaderboardData.memes.slice(0, 20).map((meme, index) => (
               <div
                 key={meme._id}
                 className="flex items-center gap-4 bg-[#2c2d31] p-4 rounded-lg"
               >
-                <div className="w-12 h-12 rounded overflow-hidden">
-                  <img src={meme.content} alt={meme.projectName} className="w-full h-full object-cover" />
+                <div className="w-8 flex-shrink-0 text-center">
+                  <span className="text-xl">#{index + 1}</span>
+                </div>
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  <img src={meme.logo || meme.content} alt={meme.projectName} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-white font-medium">{meme.projectName}</h3>
-                  <div className="flex gap-4 text-sm text-gray-400">
-                    <span>👍 {meme.engagement.likes}</span>
-                    <span>⭐ {meme.engagement.superLikes}</span>
+                  <div className="flex gap-3 text-sm">
+                    <span className="text-gray-400">👍 {meme.engagement.likes}</span>
+                    <span className="text-gray-400">⭐ {meme.engagement.superLikes}</span>
                   </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-white font-medium">
+                    {formatPoints(meme.engagement.likes + (meme.engagement.superLikes * 3))} pts
+                  </p>
                 </div>
               </div>
             ))}
