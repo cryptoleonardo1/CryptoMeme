@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
@@ -12,30 +13,78 @@ import RanksPage from './components/RanksPage';
 import dummyMemes from './data/dummyMemes';
 import { priceService } from './services/priceService';
 
-// Loading Screen Component (included in App.js for simplicity)
-const LoadingScreen = () => {
-  return (
-    <div className="fixed inset-0 bg-[#1a1b1e] flex flex-col items-center justify-center">
-      {/* Custom loading image */}
-      <div className="mb-8">
-        <img 
-          src="/loading.png" 
-          alt="Loading"
-          className="w-[200px] h-[200px] object-contain animate-pulse"
-          draggable="false"
+// Create separate LoadingScreen component
+const LoadingScreen = () => (
+  <div 
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: '#1a1b1e',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0',
+      overflow: 'hidden'
+    }}
+  >
+    {/* Image container */}
+    <div style={{
+      width: '100%',
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '0'
+    }}>
+      <img 
+        src="/loading.png"
+        alt="Loading"
+        style={{
+          width: '100%',
+          height: 'auto',
+          display: 'block',
+          margin: '0',
+          padding: '0'
+        }}
+      />
+    </div>
+
+    {/* Loading bar container */}
+    <div style={{
+      width: '100%',
+      padding: '0 24px',
+      marginBottom: '80px'
+    }}>
+      <div style={{
+        width: '100%',
+        height: '2px',
+        backgroundColor: '#2c2d31',
+        borderRadius: '4px',
+        overflow: 'hidden'
+      }}>
+        <div 
+          className="animate-load-progress"
+          style={{
+            height: '100%',
+            backgroundColor: '#22c55e'
+          }}
         />
       </div>
-      
-      {/* Progress bar and text */}
-      <div className="text-center px-4">
-        <div className="w-48 h-2 bg-gray-800 rounded-full overflow-hidden">
-          <div className="h-full bg-green-500 animate-load-progress" />
-        </div>
-        <p className="text-gray-400 mt-4">Loading market data...</p>
-      </div>
+      <p style={{
+        color: '#9ca3af',
+        textAlign: 'center',
+        marginTop: '16px',
+        fontSize: '16px'
+      }}>
+        Loading market data...
+      </p>
     </div>
-  );
-};
+  </div>
+);
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +105,6 @@ function App() {
       } catch (error) {
         console.error('Initialization error:', error);
       } finally {
-        // Add small delay to ensure image is loaded
         setTimeout(() => {
           setIsLoading(false);
         }, 1500);
@@ -67,12 +115,7 @@ function App() {
   }, []);
 
   if (isLoading) {
-    // Force full viewport dimensions during loading
-    return (
-      <div className="loading-screen-container">
-        <LoadingScreen />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
 
