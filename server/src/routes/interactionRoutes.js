@@ -9,5 +9,6 @@ const {
 // Routes
 router.post('/update', updateInteraction);
 router.get('/leaderboard', getLeaderboard);
+router.get('/debug', interactionController.debug);
 
 module.exports = router;

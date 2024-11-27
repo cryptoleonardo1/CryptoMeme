@@ -1,4 +1,3 @@
-//MemeStack.js
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MemeCard from '../MemeCard/MemeCard';
@@ -9,10 +8,31 @@ const MemeStack = ({ memes, onMemeChange }) => {
   const [lastSwipe, setLastSwipe] = React.useState(null);
   const [isAnimating, setIsAnimating] = React.useState(false);
 
+  // Test API connection on component mount
+  React.useEffect(() => {
+    const testAPI = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/interactions/debug');
+        const data = await response.json();
+        console.log('API test response:', data);
+      } catch (error) {
+        console.error('API test error:', error);
+      }
+    };
+    
+    testAPI();
+  }, []);
+
   // Function to update user points and meme stats
   const updateStats = async (action, memeId) => {
     try {
-      console.log('Sending interaction:', { action, memeId }); // Debug log
+      console.log('Sending interaction:', { 
+        action, 
+        memeId, 
+        meme: currentMeme,
+        telegramUser: window.Telegram.WebApp.initDataUnsafe?.user
+      });
+
       const response = await fetch('http://localhost:3001/api/interactions/update', {
         method: 'POST',
         headers: {
@@ -20,8 +40,8 @@ const MemeStack = ({ memes, onMemeChange }) => {
         },
         body: JSON.stringify({
           action,
-          memeId: memeId.toString(), // Ensure memeId is a string
-          telegramId: window.Telegram.WebApp.initDataUnsafe?.user?.id,
+          memeId: currentMeme._id, // Make sure we're sending the MongoDB _id
+          telegramId: window.Telegram.WebApp.initDataUnsafe?.user?.id || '12345' // Fallback for testing
         }),
       });
 
@@ -32,9 +52,9 @@ const MemeStack = ({ memes, onMemeChange }) => {
       }
 
       const data = await response.json();
-      console.log('Response:', data); // Debug log
-      
-      // Update the meme's stats locally
+      console.log('Update response:', data);
+
+      // Update the current meme with new stats
       if (data.meme) {
         setCurrentMeme(prev => ({
           ...prev,
@@ -45,14 +65,13 @@ const MemeStack = ({ memes, onMemeChange }) => {
           }
         }));
       }
-      
+
       return data;
     } catch (error) {
       console.error('Error updating stats:', error);
       return null;
     }
   };
-
 
   // Function to select a random meme based on weight
   const getWeightedRandomMeme = () => {
@@ -62,17 +81,24 @@ const MemeStack = ({ memes, onMemeChange }) => {
     for (const meme of memes) {
       random -= (meme.weight || 1);
       if (random <= 0) {
-        return meme;
+        return {
+          ...meme,
+          engagement: meme.engagement || { likes: 0, superLikes: 0 }
+        };
       }
     }
     
-    return memes[0];
+    return {
+      ...memes[0],
+      engagement: memes[0]?.engagement || { likes: 0, superLikes: 0 }
+    };
   };
 
   // Initialize current and next memes
   React.useEffect(() => {
     if (memes.length > 0 && !currentMeme) {
       const firstMeme = getWeightedRandomMeme();
+      console.log('Initial meme:', firstMeme); // Debug log
       setCurrentMeme(firstMeme);
       onMemeChange(firstMeme);
       
@@ -103,7 +129,7 @@ const MemeStack = ({ memes, onMemeChange }) => {
       }
 
       // Update backend with the interaction
-      await updateStats(action, currentMeme.id);
+      await updateStats(action, currentMeme._id);
 
       // Move to next meme and select new next meme
       setCurrentMeme(nextMeme);
@@ -117,7 +143,6 @@ const MemeStack = ({ memes, onMemeChange }) => {
     }
   };
 
-  // Animation variants remain the same
   const indicatorVariants = {
     initial: {
       opacity: 0,

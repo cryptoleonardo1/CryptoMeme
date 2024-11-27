@@ -17,9 +17,11 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
   const rotate = useTransform(x, [-100, 0, 100], [-15, 0, 15]);
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
 
-  // Safely access engagement stats
+  // Safely access engagement stats with default values
   const likes = meme?.engagement?.likes || 0;
   const superLikes = meme?.engagement?.superLikes || 0;
+
+  console.log('Meme data:', meme); // Debug log
 
   const handleDragEnd = (_, info) => {
     const xValue = x.get();

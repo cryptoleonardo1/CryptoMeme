@@ -175,3 +175,31 @@ exports.getLeaderboard = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.debug = async (req, res) => {
+    try {
+      // Test database queries
+      const userCount = await User.countDocuments();
+      const memeCount = await Meme.countDocuments();
+      const pointsCount = await PointsTransaction.countDocuments();
+  
+      // Get a sample meme
+      const sampleMeme = await Meme.findOne();
+  
+      res.json({
+        status: 'Database connected',
+        counts: {
+          users: userCount,
+          memes: memeCount,
+          points: pointsCount
+        },
+        sampleMeme
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'Database error',
+        error: error.message
+      });
+    }
+  };
+  
