@@ -17,10 +17,13 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
   const rotate = useTransform(x, [-100, 0, 100], [-15, 0, 15]);
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
 
+  // Safely access engagement stats
+  const likes = meme?.engagement?.likes || 0;
+  const superLikes = meme?.engagement?.superLikes || 0;
+
   const handleDragEnd = (_, info) => {
     const xValue = x.get();
     const yValue = y.get();
-    
     if (yValue < -100) {
       onSwipe('super');
     } else if (xValue > 100) {
@@ -54,17 +57,14 @@ const MemeCard = ({ meme, onSwipe, isTop }) => {
           alt={meme.projectName}
           className="w-full aspect-square object-cover"
         />
-
         <div className="bg-gradient-to-b from-[#2c2d31] to-[#1a1b1e] border-t border-[#3c3d41]/30 p-4">
           <div className="flex justify-between items-center">
-            <QuickStatIcon count={meme.likes || 0} text="Likes">
+            <QuickStatIcon count={likes} text="Likes">
               👍
             </QuickStatIcon>
-            
-            <QuickStatIcon count={meme.superLikes || 0} text="Super Likes">
+            <QuickStatIcon count={superLikes} text="Super Likes">
               ⭐
             </QuickStatIcon>
-            
             <div className="flex items-center gap-2">
               <span className="text-xl">🔥</span>
               <span className="text-green-400 font-medium">New</span>

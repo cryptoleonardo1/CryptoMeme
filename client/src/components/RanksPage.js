@@ -7,8 +7,7 @@ const RanksPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('users');
-  
-  // Refresh every 30 seconds to keep costs low while maintaining reasonable updates
+
   useEffect(() => {
     fetchLeaderboardData();
     const interval = setInterval(fetchLeaderboardData, 30000);
@@ -66,57 +65,79 @@ const RanksPage = () => {
           <div className="flex justify-center items-center h-48">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
           </div>
-        ) : activeTab === 'users' ? (
-          <div className="space-y-2">
-            {leaderboardData.users.slice(0, 20).map((user, index) => (
-              <div
-                key={user._id}
-                className="flex items-center gap-4 bg-[#2c2d31] p-4 rounded-lg"
-              >
-                <div className="w-8 flex-shrink-0 text-center">
-                  <span className="text-xl">
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-white font-medium">
-                    {user.username || `User ${user.telegramId?.slice(-4)}`}
-                  </h3>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-white font-medium">{formatPoints(user.totalPoints)} pts</p>
-                  <p className="text-xs text-green-400">+{formatPoints(user.dailyPoints)} today</p>
-                </div>
-              </div>
-            ))}
-          </div>
         ) : (
-          <div className="space-y-2">
-            {leaderboardData.memes.slice(0, 20).map((meme, index) => (
-              <div
-                key={meme._id}
-                className="flex items-center gap-4 bg-[#2c2d31] p-4 rounded-lg"
-              >
-                <div className="w-8 flex-shrink-0 text-center">
-                  <span className="text-xl">#{index + 1}</span>
-                </div>
-                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                  <img src={meme.logo || meme.content} alt={meme.projectName} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-white font-medium">{meme.projectName}</h3>
-                  <div className="flex gap-3 text-sm">
-                    <span className="text-gray-400">👍 {meme.engagement.likes}</span>
-                    <span className="text-gray-400">⭐ {meme.engagement.superLikes}</span>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-white font-medium">
-                    {formatPoints(meme.engagement.likes + (meme.engagement.superLikes * 3))} pts
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="rounded-lg overflow-hidden bg-[#2c2d31]">
+            {activeTab === 'users' ? (
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-[#3c3d41] text-gray-300">
+                    <th className="py-3 px-4 text-left w-16">#</th>
+                    <th className="py-3 px-4 text-left">Username</th>
+                    <th className="py-3 px-4 text-right">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaderboardData.users.slice(0, 20).map((user, index) => (
+                    <tr key={user._id} className="border-t border-[#3c3d41]/30">
+                      <td className="py-3 px-4">
+                        <span className="text-xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-white">
+                        {user.username || `User ${user.telegramId?.slice(-4)}`}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="text-white">{formatPoints(user.totalPoints)}</div>
+                        <div className="text-xs text-green-400">+{formatPoints(user.dailyPoints)} today</div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-[#3c3d41] text-gray-300">
+                    <th className="py-3 px-4 text-left w-16">#</th>
+                    <th className="py-3 px-4 text-left">Project</th>
+                    <th className="py-3 px-4 text-center">Likes</th>
+                    <th className="py-3 px-4 text-center">Super Likes</th>
+                    <th className="py-3 px-4 text-right">Total Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaderboardData.memes.slice(0, 20).map((meme, index) => (
+                    <tr key={meme._id} className="border-t border-[#3c3d41]/30">
+                      <td className="py-3 px-4">#{index + 1}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                            <img src={meme.logo || meme.content} alt={meme.projectName} className="w-full h-full object-cover" />
+                          </div>
+                          <span className="text-white">{meme.projectName}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-center text-gray-300">
+                        <span className="inline-flex items-center gap-1">
+                          <span>👍</span>
+                          {meme.engagement.likes}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center text-gray-300">
+                        <span className="inline-flex items-center gap-1">
+                          <span>⭐</span>
+                          {meme.engagement.superLikes}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right text-white">
+                        {formatPoints(meme.engagement.likes + (meme.engagement.superLikes * 3))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
       </div>
