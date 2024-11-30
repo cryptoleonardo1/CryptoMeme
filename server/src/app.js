@@ -1,9 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const checkDatabase = require('./utils/dbCheck');
 require('dotenv').config();
 
-// Import routes
 const memeRoutes = require('./routes/memeRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -11,20 +11,31 @@ const interactionRoutes = require('./routes/interactionRoutes');
 
 const app = express();
 
-// Middleware
-// Enable CORS for all routes
+// CORS configuration
 app.use(cors({
-    origin: '*', // For development. In production, specify your domain
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  origin: ['http://localhost:3000', 'https://cryptomeme-theta.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
-// MongoDB connection - using your existing connection string
+app.use(express.json());
+
+// MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
+
+// Database check endpoint
+app.get('/api/dbcheck', async (req, res) => {
+  const status = await checkDatabase();
+  res.json(status);
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Routes
 app.use('/api/memes', memeRoutes);
@@ -38,12 +49,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something broke!' });
 });
 
-// Health check route
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// Use the PORT from your existing .env file
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
