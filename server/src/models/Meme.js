@@ -24,7 +24,7 @@ const memeSchema = new mongoose.Schema({
     holders: Number,
     network: {
       type: String,
-      enum: ['TON', 'SOL']
+      enum: ['TON', 'SOL', 'ETH', 'Base', 'Ethereum', 'Solana', 'BASE']
     },
     buyLink: String,
     contractAddress: String,

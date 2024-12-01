@@ -96,63 +96,36 @@ exports.updateInteraction = async (req, res) => {
 
 exports.getLeaderboard = async (req, res) => {
   try {
-    console.log('Fetching leaderboard data'); // Debug log
-    
-    // Get top 20 users
+    // Get top users
     const users = await User.find()
       .sort('-totalPoints')
       .limit(20)
-      .select('telegramId username totalPoints')
+      .select('telegramId username totalPoints statistics')
       .lean();
 
-    // Get daily points
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const dailyPoints = await PointsTransaction.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: today }
-        }
-      },
-      {
-        $group: {
-          _id: '$user',
-          dailyPoints: { $sum: '$amount' }
-        }
-      }
-    ]);
-
-    const dailyPointsMap = new Map(
-      dailyPoints.map(item => [item._id.toString(), item.dailyPoints])
-    );
-
-    // Add daily points to users
-    const usersWithDaily = users.map(user => ({
-      ...user,
-      dailyPoints: dailyPointsMap.get(user._id.toString()) || 0
-    }));
-
-    // Get project stats with combined meme points
-    const projectStats = await Meme.aggregate([
+    // Get project stats with aggregation
+    const projects = await Meme.aggregate([
       {
         $group: {
           _id: '$projectName',
-          logo: { $first: '$logo' },
-          likes: { $sum: '$engagement.likes' },
-          superLikes: { $sum: '$engagement.superLikes' }
+          totalLikes: { $sum: '$engagement.likes' },
+          totalSuperLikes: { $sum: '$engagement.superLikes' },
+          memeCount: { $sum: 1 },
+          logo: { $first: '$logo' } // Get logo from first meme of project
         }
       },
       {
         $project: {
           projectName: '$_id',
           logo: 1,
-          engagement: {
-            likes: '$likes',
-            superLikes: '$superLikes'
-          },
+          totalLikes: 1,
+          totalSuperLikes: 1,
+          memeCount: 1,
           totalPoints: {
-            $add: ['$likes', { $multiply: ['$superLikes', 3] }]
+            $add: [
+              '$totalLikes',
+              { $multiply: ['$totalSuperLikes', 3] }
+            ]
           }
         }
       },
@@ -164,42 +137,12 @@ exports.getLeaderboard = async (req, res) => {
       }
     ]);
 
-    console.log('Leaderboard data:', { users: usersWithDaily.length, projects: projectStats.length }); // Debug log
-
     res.json({
-      users: usersWithDaily,
-      memes: projectStats
+      users,
+      projects
     });
   } catch (error) {
     console.error('Leaderboard error:', error);
     res.status(500).json({ message: error.message });
   }
 };
-
-exports.debug = async (req, res) => {
-    try {
-      // Test database queries
-      const userCount = await User.countDocuments();
-      const memeCount = await Meme.countDocuments();
-      const pointsCount = await PointsTransaction.countDocuments();
-  
-      // Get a sample meme
-      const sampleMeme = await Meme.findOne();
-  
-      res.json({
-        status: 'Database connected',
-        counts: {
-          users: userCount,
-          memes: memeCount,
-          points: pointsCount
-        },
-        sampleMeme
-      });
-    } catch (error) {
-      res.status(500).json({
-        status: 'Database error',
-        error: error.message
-      });
-    }
-  };
-  
