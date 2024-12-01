@@ -2,6 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MemeCard from '../MemeCard/MemeCard';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
 const MemeStack = ({ memes, onMemeChange }) => {
   const [currentMeme, setCurrentMeme] = React.useState(null);
   const [nextMeme, setNextMeme] = React.useState(null);
@@ -28,33 +30,31 @@ const MemeStack = ({ memes, onMemeChange }) => {
     try {
       console.log('Sending interaction:', { 
         action, 
-        memeId, 
-        meme: currentMeme,
-        telegramUser: window.Telegram.WebApp.initDataUnsafe?.user
+        memeId,
+        telegramId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id 
       });
-
-      const response = await fetch('http://localhost:3001/api/interactions/update', {
+  
+      const response = await fetch(`${API_BASE_URL}/api/interactions/update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           action,
-          memeId: currentMeme._id, // Make sure we're sending the MongoDB _id
-          telegramId: window.Telegram.WebApp.initDataUnsafe?.user?.id || '12345' // Fallback for testing
+          memeId,
+          telegramId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'test123'
         }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Server error:', errorData);
-        throw new Error('Failed to update stats');
+        throw new Error(errorData.message || 'Failed to update stats');
       }
-
+  
       const data = await response.json();
-      console.log('Update response:', data);
-
-      // Update the current meme with new stats
+      console.log('Server response:', data);
+  
       if (data.meme) {
         setCurrentMeme(prev => ({
           ...prev,
@@ -65,13 +65,14 @@ const MemeStack = ({ memes, onMemeChange }) => {
           }
         }));
       }
-
+  
       return data;
     } catch (error) {
       console.error('Error updating stats:', error);
       return null;
     }
   };
+  
 
   // Function to select a random meme based on weight
   const getWeightedRandomMeme = () => {
@@ -96,23 +97,30 @@ const MemeStack = ({ memes, onMemeChange }) => {
 
   // Initialize current and next memes
   React.useEffect(() => {
-    if (memes.length > 0 && !currentMeme) {
-      const firstMeme = getWeightedRandomMeme();
-      console.log('Initial meme:', firstMeme); // Debug log
-      setCurrentMeme(firstMeme);
-      onMemeChange(firstMeme);
-      
-      const secondMeme = getWeightedRandomMeme();
-      setNextMeme(secondMeme);
-    }
-  }, [memes]); // eslint-disable-line react-hooks/exhaustive-deps
+    const testAPI = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/interactions/debug`);
+        if (!response.ok) {
+          throw new Error(`API test failed: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('API test response:', data);
+      } catch (error) {
+        console.error('API test error:', error);
+      }
+    };
+    
+    testAPI();
+  }, []);
 
   const handleSwipe = async (direction) => {
     if (!isAnimating) {
       setIsAnimating(true);
       setLastSwipe(direction);
-
-      // Update points and stats based on swipe direction
+  
+      console.log('Swipe direction:', direction);
+      console.log('Current meme:', currentMeme);
+  
       let action;
       switch (direction) {
         case 'right':
@@ -127,6 +135,10 @@ const MemeStack = ({ memes, onMemeChange }) => {
         default:
           action = 'view';
       }
+
+      console.log('Attempting to update stats with action:', action);
+      const result = await updateStats(action, currentMeme._id);
+      console.log('Update result:', result);
 
       // Update backend with the interaction
       await updateStats(action, currentMeme._id);

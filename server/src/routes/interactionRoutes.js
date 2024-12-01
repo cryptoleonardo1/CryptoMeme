@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const {
@@ -6,9 +5,13 @@ const {
   getLeaderboard
 } = require('../controllers/interactionController');
 
-// Routes
+// Test route
+router.get('/test', (req, res) => {
+  res.json({ status: 'ok', message: 'Interaction routes working' });
+});
+
+// Main routes
 router.post('/update', updateInteraction);
 router.get('/leaderboard', getLeaderboard);
-router.get('/debug', interactionController.debug);
 
 module.exports = router;

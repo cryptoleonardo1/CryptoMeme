@@ -1,43 +1,37 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const checkDatabase = require('./utils/dbCheck');
-require('dotenv').config();
-
-const memeRoutes = require('./routes/memeRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-const userRoutes = require('./routes/userRoutes');
-const interactionRoutes = require('./routes/interactionRoutes');
+const morgan = require('morgan'); // Add this if you haven't already: npm install morgan
 
 const app = express();
 
+// Logging middleware
+app.use(morgan('dev')); // This will show you server logs in the terminal
+
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://cryptomeme-theta.vercel.app'],
+  origin: ['http://localhost:3000', 'http://localhost:5173'], // Add your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
+// Body parsing middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// Import routes
+const memeRoutes = require('./routes/memeRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const userRoutes = require('./routes/userRoutes');
+const interactionRoutes = require('./routes/interactionRoutes');
 
-// Database check endpoint
-app.get('/api/dbcheck', async (req, res) => {
-  const status = await checkDatabase();
-  res.json(status);
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// Routes
+// API routes
 app.use('/api/memes', memeRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
@@ -46,7 +40,7 @@ app.use('/api/interactions', interactionRoutes);
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something broke!' });
+  res.status(500).json({ message: err.message || 'Something went wrong!' });
 });
 
 const PORT = process.env.PORT || 3001;
