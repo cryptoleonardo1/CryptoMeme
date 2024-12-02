@@ -88,6 +88,46 @@ class PriceService {
 
       return this.loadingPromise;
     }
+    
+    async fetchPriceData(contract, network) {
+      try {
+          // First try to get from cache
+          const memeId = this.getMemeIdFromContract(contract);
+          if (memeId) {
+              return this.getTokenDataByMemeId(memeId);
+          }
+
+          // If not in cache, fetch new data
+          const response = await fetch(`${this.baseUrl}/simple/price?ids=${contract}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);
+          if (!response.ok) {
+              throw new Error('Network response was not ok');
+          }
+          const data = await response.json();
+          return {
+              price: this.formatPrice(data[contract]?.usd),
+              marketCap: this.formatMarketCap(data[contract]?.usd_market_cap),
+              priceChange24h: this.formatPriceChange(data[contract]?.usd_24h_change)
+          };
+      } catch (error) {
+          console.error('Error fetching price data:', error);
+          return {
+              price: '0.00',
+              marketCap: '0',
+              priceChange24h: 0
+          };
+      }
+  }
+
+  getMemeIdFromContract(contract) {
+      // Helper method to find meme ID from contract
+      for (const [tokenId, memeIds] of Object.entries(this.uniqueTokens)) {
+          if (tokenId.toLowerCase() === contract.toLowerCase()) {
+              return memeIds[0]; // Return first meme ID associated with this token
+          }
+      }
+      return null;
+  }
+
 
     loadAllFallbackData() {
       console.log('Loading fallback data...');

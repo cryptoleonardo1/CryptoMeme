@@ -7,7 +7,9 @@ const MemeStack = ({ memes, onMemeChange }) => {
   const [nextMeme, setNextMeme] = React.useState(null);
   const [lastSwipe, setLastSwipe] = React.useState(null);
   const [isAnimating, setIsAnimating] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
 
+  
     // Function to select a random meme based on weight - MOVED UP
     const getWeightedRandomMeme = () => {
       const totalWeight = memes.reduce((sum, meme) => sum + (meme.weight || 1), 0);
@@ -28,6 +30,12 @@ const MemeStack = ({ memes, onMemeChange }) => {
         engagement: memes[0]?.engagement || { likes: 0, superLikes: 0 }
       };
     };
+
+      // Check if running in Telegram WebApp
+  React.useEffect(() => {
+    setIsMobile(!!window.Telegram?.WebApp);
+  }, []);
+
   
     // Test API connection on component mount
     React.useEffect(() => {
@@ -47,17 +55,8 @@ const MemeStack = ({ memes, onMemeChange }) => {
     // Function to update user points and meme stats
     const updateStats = async (action, memeId) => {
       try {
-        // Safety check
-        if (!currentMeme || !currentMeme._id) {
-          console.error('No current meme to update');
-          return null;
-        }
-  
-        console.log('Sending interaction:', { 
-          action, 
-          memeId: currentMeme._id,
-          telegramId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'test123'
-        });
+        const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        console.log('Updating stats for:', { action, memeId, telegramUser });
   
         const response = await fetch('http://localhost:3001/api/interactions/update', {
           method: 'POST',
@@ -67,15 +66,9 @@ const MemeStack = ({ memes, onMemeChange }) => {
           body: JSON.stringify({
             action,
             memeId: currentMeme._id,
-            telegramId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'test123'
+            telegramId: telegramUser?.id || 'test123'
           }),
         });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Server error:', errorData);
-          throw new Error(errorData.message || 'Failed to update stats');
-        }
   
         const data = await response.json();
         console.log('Update response:', data);
@@ -223,7 +216,7 @@ const MemeStack = ({ memes, onMemeChange }) => {
       </AnimatePresence>
 
        {/* Cards */}
-       <AnimatePresence>
+      <AnimatePresence>
         {currentMeme && (
           <motion.div
             key={currentMeme.id + "-current"}
@@ -247,6 +240,7 @@ const MemeStack = ({ memes, onMemeChange }) => {
               meme={currentMeme}
               onSwipe={handleSwipe}
               isTop={true}
+              isMobile={isMobile}
             />
           </motion.div>
         )}
@@ -267,27 +261,29 @@ const MemeStack = ({ memes, onMemeChange }) => {
         )}
       </AnimatePresence>
 
-      {/* Browser interaction buttons */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex gap-4">
-        <button
-          onClick={() => handleSwipe('left')}
-          className="p-4 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-colors"
-        >
-          👎
-        </button>
-        <button
-          onClick={() => handleSwipe('right')}
-          className="p-4 rounded-full bg-green-500/20 hover:bg-green-500/40 transition-colors"
-        >
-          👍
-        </button>
-        <button
-          onClick={() => handleSwipe('super')}
-          className="p-4 rounded-full bg-blue-500/20 hover:bg-blue-500/40 transition-colors"
-        >
-          ⭐
-        </button>
-      </div>
+ {/* Show browser interaction buttons only if not in mobile/Telegram */}
+ {!isMobile && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex gap-4">
+          <button
+            onClick={() => handleSwipe('left')}
+            className="p-4 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-colors"
+          >
+            👎
+          </button>
+          <button
+            onClick={() => handleSwipe('right')}
+            className="p-4 rounded-full bg-green-500/20 hover:bg-green-500/40 transition-colors"
+          >
+            👍
+          </button>
+          <button
+            onClick={() => handleSwipe('super')}
+            className="p-4 rounded-full bg-blue-500/20 hover:bg-blue-500/40 transition-colors"
+          >
+            ⭐
+          </button>
+        </div>
+      )}
     </div>
   );
 };
