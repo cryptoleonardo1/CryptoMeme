@@ -12,6 +12,7 @@
   "dependencies": {
     "@twa-dev/sdk": "^6.9.0",
     "framer-motion": "^10.16.4",
+    "morgan": "^1.10.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

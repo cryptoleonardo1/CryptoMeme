@@ -390,26 +390,29 @@ const dummyMemes = [
 
 async function seedFromDummy() {
     try {
-      console.log('Starting seed process...');
-      const mongoUri = process.env.MONGODB_URI;
-      if (!mongoUri) {
-        throw new Error('MONGODB_URI not found in environment variables');
-      }
-      console.log('MongoDB URI found');
-      
-      await mongoose.connect(mongoUri);
-      console.log('Connected to MongoDB');
-  
-      await Meme.deleteMany({});
-      console.log('Cleared existing memes');
-  
-      const result = await Meme.insertMany(dummyMemes);
-      console.log('Inserted memes:', result);
-  
+        console.log('Connecting to MongoDB...');
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log('Connected successfully!');
+    
+        console.log('Clearing existing memes...');
+        await Meme.deleteMany({});
+    
+        console.log('Inserting new memes...');
+        const result = await Meme.insertMany(dummyMemes);
+        
+        // Add this section
+        console.log('Verifying inserted memes...');
+        const totalMemes = await Meme.countDocuments();
+        const sampleMeme = await Meme.findOne();
+        console.log(`Total memes in database: ${totalMemes}`);
+        console.log('Sample meme:', sampleMeme);
+        // End new section
+    
+        console.log(`Successfully inserted ${result.length} memes`);
     } catch (error) {
-      console.error('Error:', error);
-      process.exit(1);
+        console.error('Error details:', error);
+        process.exit(1);
     }
-  }
+}
   
   seedFromDummy();

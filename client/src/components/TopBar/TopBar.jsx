@@ -1,6 +1,7 @@
 // src/components/TopBar/TopBar.js
 import React, { useEffect, useState } from 'react';
 import { priceService } from '../../services/priceService';
+import { ENDPOINTS } from '../../config/api'; // Add this import
 
 const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
   const [priceData, setPriceData] = useState(null);
@@ -102,39 +103,59 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
 
    // Added new function for test interactions
    const handleTestInteraction = async (action) => {
-     if (!meme?.id) return;
-     
-     setTestInteractionLoading(true);
-     try {
-       const response = await fetch('http://localhost:3001/api/interactions/update', {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-         },
-         body: JSON.stringify({
-           action,
-           memeId: meme.id,
-           telegramId: 'test123' // Test user ID
-         }),
-       });
- 
-       const data = await response.json();
-       console.log(`Test ${action} interaction:`, data);
-       
-       // Show feedback
-       alert(`${action.toUpperCase()} interaction recorded successfully!`);
-     } catch (error) {
-       console.error(`Test ${action} interaction error:`, error);
-       alert(`Error: ${error.message}`);
-     } finally {
-       setTestInteractionLoading(false);
-     }
-   };
+    if (!meme?.id) {
+      console.error('No meme ID available');
+      return;
+    }
+    
+    setTestInteractionLoading(true);
+    try {
+      const payload = {
+        action,
+        memeId: meme.id,
+        telegramId: 'test123'
+      };
+      
+      console.log('Sending interaction:', payload);
+      console.log('To endpoint:', ENDPOINTS.interactions.update);
+  
+      const response = await fetch(ENDPOINTS.interactions.update, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+  
+      try {
+        const data = JSON.parse(responseText);
+        console.log('Parsed response:', data);
+        
+        if (data.success) {
+          alert(`${action.toUpperCase()} interaction recorded successfully!`);
+        } else {
+          throw new Error(data.message || 'Interaction failed');
+        }
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        console.error('Raw response was:', responseText);
+        throw new Error('Invalid response from server');
+      }
+    } catch (error) {
+      console.error(`Test ${action} interaction error:`, error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setTestInteractionLoading(false);
+    }
+  };
 
   return (
     <div className="w-full bg-[#1a1b1e] shadow-md">
     {/* Add test buttons in development */}
-    {process.env.NODE_ENV === 'development' && (
+    {(process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') && (
       <div className="w-full bg-gray-800 p-2 flex justify-center gap-2">
         <button
           onClick={() => handleTestInteraction('like')}
