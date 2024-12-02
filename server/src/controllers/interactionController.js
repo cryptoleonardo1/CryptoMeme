@@ -1,3 +1,4 @@
+//interactionController.js
 const User = require('../models/User');
 const Meme = require('../models/Meme');
 const PointsTransaction = require('../models/Points');
@@ -5,12 +6,25 @@ const ViewHistory = require('../models/ViewHistory');
 
 exports.updateInteraction = async (req, res) => {
   try {
-    console.log('Received interaction:', req.body); // Debug log
+    console.log('Received request:', {
+      body: req.body,
+      headers: req.headers['content-type']
+    });
+
     const { action, memeId, telegramId } = req.body;
     
+    if (!action || !memeId || !telegramId) {
+      console.log('Missing required fields:', { action, memeId, telegramId });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields' 
+      });
+    }
+
     // Find user and meme
+ // Then proceed with database operations
     const user = await User.findOne({ telegramId });
-    const meme = await Meme.findById(memeId);
+    const meme = await Meme.findOne({ id: Number(memeId) });
 
     if (!user) {
       console.log('User not found:', telegramId);
@@ -90,7 +104,10 @@ exports.updateInteraction = async (req, res) => {
     });
   } catch (error) {
     console.error('Interaction error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
   }
 };
 
