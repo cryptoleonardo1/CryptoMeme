@@ -97,8 +97,70 @@ const TopBar = ({ meme, onDetailsClick, isDetailsOpen }) => {
     );
   };
 
+   // Added new state for interaction testing
+   const [testInteractionLoading, setTestInteractionLoading] = useState(false);
+
+   // Added new function for test interactions
+   const handleTestInteraction = async (action) => {
+     if (!meme?.id) return;
+     
+     setTestInteractionLoading(true);
+     try {
+       const response = await fetch('http://localhost:3001/api/interactions/update', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({
+           action,
+           memeId: meme.id,
+           telegramId: 'test123' // Test user ID
+         }),
+       });
+ 
+       const data = await response.json();
+       console.log(`Test ${action} interaction:`, data);
+       
+       // Show feedback
+       alert(`${action.toUpperCase()} interaction recorded successfully!`);
+     } catch (error) {
+       console.error(`Test ${action} interaction error:`, error);
+       alert(`Error: ${error.message}`);
+     } finally {
+       setTestInteractionLoading(false);
+     }
+   };
+
   return (
     <div className="w-full bg-[#1a1b1e] shadow-md">
+    {/* Add test buttons in development */}
+    {process.env.NODE_ENV === 'development' && (
+      <div className="w-full bg-gray-800 p-2 flex justify-center gap-2">
+        <button
+          onClick={() => handleTestInteraction('like')}
+          disabled={testInteractionLoading}
+          className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-50"
+        >
+          Test Like 👍
+        </button>
+        <button
+          onClick={() => handleTestInteraction('dislike')}
+          disabled={testInteractionLoading}
+          className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 disabled:opacity-50"
+        >
+          Test Dislike 👎
+        </button>
+        <button
+          onClick={() => handleTestInteraction('superlike')}
+          disabled={testInteractionLoading}
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50"
+        >
+          Test Super Like ⭐
+        </button>
+      </div>
+    )}
+
+            {/* Existing TopBar content */}
       {process.env.NODE_ENV === 'development' && (
         <div className="text-xs text-gray-500 p-2 border-b border-gray-800">
           Debug: MemeID: {meme?.id} | Loading: {loading.toString()} | 
