@@ -1,89 +1,66 @@
-// Meme.js
 const mongoose = require('mongoose');
 
 const memeSchema = new mongoose.Schema({
-  // Core meme fields
+  id: {
+    type: Number,
+    required: true,
+    unique: true,
+    index: true
+  },
   projectName: {
     type: String,
-    required: true
+    required: true,
+    index: true
   },
   content: {
     type: String,
-    required: true  // URL or base64 of image/video
-  },
-  contentType: {
-    type: String,
-    enum: ['image/png', 'video/mp4'],
     required: true
   },
-  
-  // Project details
-  projectDetails: {
-    marketCap: Number,
-    priceChange24h: Number,
-    holders: Number,
-    network: {
-      type: String,
-      enum: ['TON', 'SOL', 'ETH', 'Base', 'Ethereum', 'Solana', 'BASE']
-    },
-    buyLink: String,
-    contractAddress: String,
-    socialLinks: {
-      telegram: String,
-      twitter: String,
-      website: String
-    }
-  },
-  
-  // Display settings
-  displaySettings: {
-    weight: {
-      type: Number,
-      default: 10  // Regular meme weight
-    },
-    isPaid: {
-      type: Boolean,
-      default: false
-    },
-    priority: {
-      type: Number,
-      default: 0
-    },
-    startDate: Date,
-    endDate: Date
-  },
-  
-  // Engagement metrics
   engagement: {
     likes: { type: Number, default: 0 },
-    dislikes: { type: Number, default: 0 },
     superLikes: { type: Number, default: 0 },
-    views: { type: Number, default: 0 },
-    clickThroughs: { type: Number, default: 0 }
+    dislikes: { type: Number, default: 0 }
   },
-  
-  // B2B features
-  business: {
-    clientName: String,
-    package: {
-      type: String,
-      enum: ['free', 'growth', 'premium']
+  projectDetails: {
+    type: { 
+      type: String, 
+      enum: ['Meme', 'Gaming', 'AI'],
+      default: 'Meme'
     },
-    paymentStatus: {
-      type: String,
-      enum: ['pending', 'paid', 'expired']
-    },
-    contactEmail: String
+    network: String,
+    price: String,
+    marketCap: Number,
+    priceChange24h: Number,
+    contract: String,
+    website: String,
+    twitter: String,
+    telegram: String
   },
-
-  // Status
+  analytics: {
+    linkClicks: {
+      website: { type: Number, default: 0 },
+      telegram: { type: Number, default: 0 },
+      twitter: { type: Number, default: 0 }
+    },
+    taskCompletions: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0 },
+    lastViewed: { type: Date, default: Date.now }
+  },
   status: {
     type: String,
-    enum: ['active', 'inactive', 'pending', 'rejected'],
+    enum: ['active', 'inactive', 'pending'],
     default: 'active'
   }
 }, {
   timestamps: true
 });
 
-module.exports = mongoose.model('Meme', memeSchema);
+// Indexes for efficient querying
+memeSchema.index({ 'engagement.likes': -1 });
+memeSchema.index({ 'engagement.superLikes': -1 });
+memeSchema.index({ 'projectDetails.type': 1, 'projectDetails.network': 1 });
+memeSchema.index({ status: 1 });
+
+const Meme = mongoose.model('Meme', memeSchema);
+
+module.exports = Meme;

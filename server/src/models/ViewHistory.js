@@ -1,16 +1,22 @@
-// ViewHistory.js
+//server/src/models/ViewHistory.js
 const mongoose = require('mongoose');
 
 const viewHistorySchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,  // Changed to String to store telegramId
     ref: 'User',
-    required: true
+    required: true,
+    index: true
   },
-  meme: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Meme',
-    required: true
+  memeId: {
+    type: Number,
+    required: true,
+    index: true
+  },
+  projectName: {
+    type: String,
+    required: true,
+    index: true
   },
   interactions: [{
     type: {
@@ -34,5 +40,10 @@ const viewHistorySchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Compound indexes for efficient querying
+viewHistorySchema.index({ user: 1, memeId: 1 });
+viewHistorySchema.index({ projectName: 1, lastViewed: -1 });
+viewHistorySchema.index({ user: 1, lastViewed: -1 });
 
 module.exports = mongoose.model('ViewHistory', viewHistorySchema);

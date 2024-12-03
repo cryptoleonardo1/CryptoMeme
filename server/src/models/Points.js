@@ -1,11 +1,11 @@
-// Points.js
 const mongoose = require('mongoose');
 
 const pointsTransactionSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,  // Changed to String to store telegramId
     ref: 'User',
-    required: true
+    required: true,
+    index: true
   },
   amount: {
     type: Number,
@@ -22,14 +22,25 @@ const pointsTransactionSchema = new mongoose.Schema({
     required: true
   },
   relatedEntity: {
-    // Can be a task, meme, or referral
-    entityType: String,
-    entityId: mongoose.Schema.Types.ObjectId
+    entityType: {
+      type: String,
+      enum: ['meme', 'task', 'referral', 'project'],
+      required: true
+    },
+    entityId: {
+      type: mongoose.Schema.Types.Mixed,  // Can be ObjectId or Number (for memeId)
+      required: true
+    }
   },
   description: String,
   expiryDate: Date
 }, {
   timestamps: true
 });
+
+// Indexes for efficient querying
+pointsTransactionSchema.index({ user: 1, createdAt: -1 });
+pointsTransactionSchema.index({ source: 1, type: 1 });
+pointsTransactionSchema.index({ 'relatedEntity.entityType': 1, 'relatedEntity.entityId': 1 });
 
 module.exports = mongoose.model('PointsTransaction', pointsTransactionSchema);

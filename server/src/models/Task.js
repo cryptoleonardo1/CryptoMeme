@@ -1,61 +1,60 @@
-// Task.js
 const mongoose = require('mongoose');
 
 const taskSchema = new mongoose.Schema({
-  // Core task fields
+  projectId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+    required: true,
+    index: true
+  },
   type: {
     type: String,
-    enum: ['social', 'referral', 'engagement', 'custom'],
-    required: true
+    enum: ['social', 'sponsored', 'daily'],
+    required: true,
+    index: true
   },
   action: {
     type: String,
-    required: true  // e.g., 'join_telegram', 'follow_twitter'
+    enum: ['visit', 'join', 'follow', 'share'],
+    required: true
   },
   points: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
-  
-  // Task details
-  details: {
-    platform: String,
+  requirements: {
     link: String,
-    requirement: String,
+    platform: {
+      type: String,
+      enum: ['telegram', 'twitter', 'website', 'other']
+    },
     verificationMethod: {
       type: String,
-      enum: ['automatic', 'manual', 'callback']
+      enum: ['click', 'manual', 'api'],
+      default: 'click'
     }
   },
-  
-  // Related project (if B2B task)
-  project: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Meme'
+  analytics: {
+    completions: { type: Number, default: 0 },
+    lastCompletedAt: Date,
+    uniqueUsers: { type: Number, default: 0 }
   },
-  
-  // Completion tracking
-  completions: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    completedAt: Date,
-    verified: Boolean
-  }],
-  
-  // Task settings
-  settings: {
-    isRepeatable: {
-      type: Boolean,
-      default: false
-    },
-    frequency: String,  // 'once', 'daily', 'weekly'
-    expiryDate: Date,
-    maxCompletions: Number
-  }
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'completed'],
+    default: 'active'
+  },
+  expiresAt: Date
 }, {
   timestamps: true
 });
 
-module.exports = mongoose.model('Task', taskSchema);
+// Indexes for efficient querying
+taskSchema.index({ type: 1, status: 1 });
+taskSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index
+taskSchema.index({ 'requirements.platform': 1 });
+
+const Task = mongoose.model('Task', taskSchema);
+
+module.exports = Task;

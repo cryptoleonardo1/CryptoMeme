@@ -1,3 +1,4 @@
+//server/src/app.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -63,12 +64,16 @@ const memeRoutes = require('./routes/memeRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
 const interactionRoutes = require('./routes/interactionRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
+const referralRoutes = require('./routes/referralRoutes');
 
 // API routes
 app.use('/api/memes', memeRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/interactions', interactionRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/referrals', referralRoutes);
 
 // Handle OPTIONS requests
 app.use((req, res, next) => {

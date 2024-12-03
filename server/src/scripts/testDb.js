@@ -1,45 +1,115 @@
 const mongoose = require('mongoose');
-require('dotenv').config({ path: '../../.env' });
+require('dotenv').config();
+const connectDB = require('../config/database');
 
-async function testConnection() {
+const testDatabase = async () => {
   try {
-    console.log('Attempting to connect to MongoDB...');
-    console.log('Using URI:', process.env.MONGODB_URI);
-    
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('Successfully connected to MongoDB!');
-    
-    // Check connection state
-    const state = mongoose.connection.readyState;
-    console.log('Connection state:', 
-      state === 0 ? 'Disconnected' :
-      state === 1 ? 'Connected' :
-      state === 2 ? 'Connecting' :
-      'Unknown'
-    );
+    await connectDB();
+    console.log('Starting database tests...');
 
-    // Try to create a test document
-    const TestModel = mongoose.model('Test', new mongoose.Schema({
-      name: String,
-      date: { type: Date, default: Date.now }
-    }));
+    // Get model references
+    const User = mongoose.model('User');
+    const Meme = mongoose.model('Meme');
+    const Project = mongoose.model('Project');
+    const Points = mongoose.model('PointsTransaction');
 
-    const testDoc = await TestModel.create({
-      name: 'Test Document'
+    // First clean up any existing test data
+    console.log('Cleaning up existing test data...');
+    await Promise.all([
+      User.deleteOne({ telegramId: 'test123' }),
+      Project.deleteOne({ name: 'Test Project' }),
+      Meme.deleteOne({ id: 9999 }),
+      Points.deleteOne({ description: 'Test points transaction' })
+    ]);
+
+    console.log('Creating test documents...');
+
+    // Test user creation
+    const testUser = new User({
+      telegramId: 'test123',
+      username: 'testuser',
+      totalPoints: 0,
+      pointsBreakdown: {
+        likes: 0,
+        dislikes: 0,
+        superLikes: 0,
+        tasks: 0,
+        referrals: 0
+      }
     });
 
-    console.log('Created test document:', testDoc);
+    // Test project creation
+    const testProject = new Project({
+      name: 'Test Project',
+      type: 'Meme',
+      status: 'active',
+      totalScore: 0,
+      engagement: {
+        likes: 0,
+        superLikes: 0
+      }
+    });
 
-    // Clean up
-    await TestModel.deleteOne({ _id: testDoc._id });
-    console.log('Cleaned up test document');
+    // Test meme creation
+    const testMeme = new Meme({
+      id: 9999,
+      projectName: 'Test Project',
+      content: 'test-content-url',
+      status: 'active',
+      engagement: {
+        likes: 0,
+        superLikes: 0,
+        dislikes: 0
+      }
+    });
 
-    // Close connection
+    // Test points transaction
+    const testPoints = new Points({
+      user: 'test123',
+      amount: 10,
+      type: 'earn',
+      source: 'like',
+      relatedEntity: {
+        entityType: 'meme',
+        entityId: 9999
+      },
+      description: 'Test points transaction'
+    });
+
+    // Save test documents
+    const savedDocs = await Promise.all([
+      testUser.save(),
+      testProject.save(),
+      testMeme.save(),
+      testPoints.save()
+    ]);
+
+    console.log('Test documents created successfully');
+    console.log('Saved documents:', savedDocs.map(doc => ({
+      model: doc.constructor.modelName,
+      id: doc._id
+    })));
+
+    // Clean up test data
+    console.log('Cleaning up test data...');
+    await Promise.all([
+      User.deleteOne({ telegramId: 'test123' }),
+      Project.deleteOne({ name: 'Test Project' }),
+      Meme.deleteOne({ id: 9999 }),
+      Points.deleteOne({ description: 'Test points transaction' })
+    ]);
+
+    console.log('Test documents cleaned up successfully');
+    
     await mongoose.connection.close();
-    console.log('Connection closed');
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
+    console.log('Database connection closed');
+    console.log('All tests completed successfully! ✅');
 
-testConnection();
+  } catch (error) {
+    console.error('Database test failed:', error);
+    await mongoose.connection.close();
+    process.exit(1);
+  }
+};
+
+testDatabase();

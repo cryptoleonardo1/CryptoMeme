@@ -1,17 +1,18 @@
+// interactionRoutes.js
 const express = require('express');
 const router = express.Router();
-const {
-  updateInteraction,
-  getLeaderboard
-} = require('../controllers/interactionController');
+const InteractionController = require('../controllers/InteractionController');
+const { validateRequest } = require('../middleware/validation');
+const { bypassAuthInDevelopment } = require('../middleware/auth');
 
-// Test route
-router.get('/test', (req, res) => {
-  res.json({ status: 'ok', message: 'Interaction routes working' });
-});
+router.post('/update',
+  bypassAuthInDevelopment,
+  validateRequest('handleInteraction'),
+  InteractionController.handleInteraction
+);
 
-// Main routes
-router.post('/update', updateInteraction);
-router.get('/leaderboard', getLeaderboard);
+if (process.env.NODE_ENV === 'development') {
+  router.get('/debug', (req, res) => res.json({ status: 'ok' }));
+}
 
 module.exports = router;

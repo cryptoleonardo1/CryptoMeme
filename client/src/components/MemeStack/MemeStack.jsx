@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MemeCard from '../MemeCard/MemeCard';
+import { ENDPOINTS } from '../../config/api';
 
 const MemeStack = ({ memes, onMemeChange }) => {
   const [currentMeme, setCurrentMeme] = React.useState(null);
@@ -58,46 +59,49 @@ const MemeStack = ({ memes, onMemeChange }) => {
       try {
         const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
         console.log('Updating stats for:', { action, memeId, telegramUser });
-    
+  
         const response = await fetch(ENDPOINTS.interactions.update, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            // Add CORS headers for local development
-            ...(process.env.NODE_ENV === 'development' && {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type'
-            })
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             action,
             memeId: memeId,
-            telegramId: telegramUser?.id || 'test123'
+            telegramId: telegramUser?.id || 'test123',
           }),
+          credentials: 'include'
         });
-    
+  
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-    
+  
         const data = await response.json();
         console.log('Update response:', data);
-    
+  
         if (data.success && data.meme) {
+          const updatedEngagement = {
+            likes: data.meme.likes || 0,
+            superLikes: data.meme.superLikes || 0
+          };
+          
           setCurrentMeme(prev => ({
             ...prev,
-            engagement: {
-              ...prev.engagement,
-              likes: data.meme.likes,
-              superLikes: data.meme.superLikes
-            }
+            engagement: updatedEngagement
+          }));
+  
+          onMemeChange(prev => ({
+            ...prev,
+            engagement: updatedEngagement
           }));
         }
-    
+  
         return data;
       } catch (error) {
         console.error('Error updating stats:', error);
+        // Show error to user
+        alert('Failed to update interaction. Please try again.');
         return null;
       }
     };

@@ -1,13 +1,20 @@
-// src/routes/taskRoutes.js
+// taskRoutes.js
 const express = require('express');
 const router = express.Router();
-const {
-  createTask,
-  completeTask
-} = require('../controllers/taskController');
+const TaskController = require('../controllers/TaskController');
+const { validateRequest } = require('../middleware/validation');
+const { bypassAuthInDevelopment } = require('../middleware/auth');
 
-// Routes
-router.post('/create', createTask);
-router.post('/complete', completeTask);
+router.post('/create',
+  bypassAuthInDevelopment,
+  validateRequest('createTask'),
+  TaskController.createTask
+);
+
+router.post('/complete',
+  bypassAuthInDevelopment,
+  validateRequest('completeTask'),
+  TaskController.completeTask
+);
 
 module.exports = router;

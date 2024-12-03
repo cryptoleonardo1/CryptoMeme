@@ -1,15 +1,19 @@
-// src/routes/memeRoutes.js
+// memeRoutes.js
 const express = require('express');
 const router = express.Router();
-const {
-  createMeme,
-  getNextMeme,
-  interactWithMeme
-} = require('../controllers/memeController');
+const MemeController = require('../controllers/MemeController');
+const { validateRequest } = require('../middleware/validation');
+const { bypassAuthInDevelopment } = require('../middleware/auth');
 
-// Routes
-router.post('/create', createMeme);
-router.get('/next/:userId', getNextMeme);
-router.post('/interact', interactWithMeme);
+router.post('/create',
+  bypassAuthInDevelopment,
+  validateRequest('createMeme'),
+  MemeController.createMeme
+);
+
+router.get('/next/:telegramId',
+  bypassAuthInDevelopment,
+  MemeController.getNextMeme
+);
 
 module.exports = router;
