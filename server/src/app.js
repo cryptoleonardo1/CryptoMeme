@@ -1,35 +1,61 @@
-//server app.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
-const app = express();
+const path = require('path');
 
-// Logging middleware
-app.use(morgan('dev')); // This will show you server logs in the terminal
+const app = express();
 
 // CORS configuration
 app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:5173',
-    'https://cryptomeme-theta.vercel.app',
-    'https://cryptomeme-hw9fcqouy-bugiiiis-projects.vercel.app'
+    'https://cryptomeme-theta.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Body parsing middleware
+// Basic security headers
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';");
+  next();
+});
+
+// Middleware
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Add request logging
+// Static files
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  console.log('Request body:', req.body);
+  if (['POST', 'PUT'].includes(req.method)) {
+    console.log('Request body:', req.body);
+  }
   next();
+});
+
+// Basic routes
+app.get('/', (req, res) => {
+  res.json({ message: 'CryptoMeme API Server', status: 'online' });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
+
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/favicon.ico'));
 });
 
 // Import routes
@@ -38,40 +64,49 @@ const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
 const interactionRoutes = require('./routes/interactionRoutes');
 
-// Test endpoint
-app.get('/test', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
-});
-
-app.get('/favicon.ico', (req, res) => {
-  res.status(204).end();
-});
-
 // API routes
 app.use('/api/memes', memeRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/interactions', interactionRoutes);
 
+// Handle OPTIONS requests
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.originalUrl
+  });
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error('Error details:', {
     message: err.message,
-    stack: err.stack,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     path: req.path,
     method: req.method,
     body: req.body
   });
-  res.status(500).json({ 
+  
+  res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Something went wrong!' 
+    message: process.env.NODE_ENV === 'development' 
+      ? err.message 
+      : 'An unexpected error occurred',
+    error: process.env.NODE_ENV === 'development' ? {
+      stack: err.stack,
+      ...err
+    } : undefined
   });
-});
-
-const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;

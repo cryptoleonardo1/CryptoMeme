@@ -1,40 +1,52 @@
-//interactionController.js
 const User = require('../models/User');
 const Meme = require('../models/Meme');
 const PointsTransaction = require('../models/Points');
 const ViewHistory = require('../models/ViewHistory');
 
-xports.updateInteraction = async (req, res) => {
+exports.updateInteraction = async (req, res) => {
   try {
-    console.log('Received request:', {
-      body: req.body,
-      headers: req.headers['content-type']
-    });
-
+    console.log('Received interaction request:', req.body);
+    
     const { action, memeId, telegramId } = req.body;
-
-    // Find user
-    const user = await User.findOne({ telegramId });
-
-    // Find meme by numeric ID
-    const meme = await Meme.findOne({ id: Number(memeId) });
-
-    console.log('Lookup results:', {
-      userFound: !!user,
-      memeFound: !!meme,
-      userId: telegramId,
-      memeId: memeId,
-      memeDetails: meme ? { id: meme.id, name: meme.projectName } : null
+    
+    // Improved meme lookup - handles both string and ObjectId formats
+    const meme = await Meme.findOne({
+      $or: [
+        { _id: memeId },
+        { id: parseInt(memeId) }
+      ]
     });
+
+    // Improved user lookup/creation
+    let user = await User.findOne({ telegramId: telegramId });
+    
+    // If no user exists and we have a telegramId, create one
+    if (!user && telegramId) {
+      user = await User.create({
+        telegramId,
+        points: 0,
+        totalPoints: 0,
+        statistics: {
+          likes: 0,
+          dislikes: 0,
+          superLikes: 0
+        }
+      });
+    }
 
     if (!user) {
-      console.log('User not found:', telegramId);
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found or could not be created' 
+      });
     }
-    
+
     if (!meme) {
-      console.log('Meme not found:', memeId);
-      return res.status(404).json({ success: false, message: 'Meme not found' });
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Meme not found',
+        memeId 
+      });
     }
 
     // Initialize engagement if it doesn't exist
@@ -46,7 +58,6 @@ xports.updateInteraction = async (req, res) => {
         views: 0
       };
     }
-
 
     // Determine points and update engagement
     let points = 0;
@@ -64,15 +75,22 @@ xports.updateInteraction = async (req, res) => {
         meme.engagement.superLikes = (meme.engagement.superLikes || 0) + 1;
         break;
       default:
-        return res.status(400).json({ message: 'Invalid action' });
+        return res.status(400).json({ success: false, message: 'Invalid action' });
     }
 
     // Update user points
     user.points = (user.points || 0) + points;
     user.totalPoints = (user.totalPoints || 0) + points;
+    
+    // Update user statistics
     user.statistics = user.statistics || {};
-    user.statistics[action === 'superlike' ? 'superLikes' : 'likes'] = 
-      (user.statistics[action === 'superlike' ? 'superLikes' : 'likes'] || 0) + 1;
+    if (action === 'superlike') {
+      user.statistics.superLikes = (user.statistics.superLikes || 0) + 1;
+    } else if (action === 'like') {
+      user.statistics.likes = (user.statistics.likes || 0) + 1;
+    } else {
+      user.statistics.dislikes = (user.statistics.dislikes || 0) + 1;
+    }
 
     // Create points transaction
     await PointsTransaction.create({
@@ -90,7 +108,8 @@ xports.updateInteraction = async (req, res) => {
     // Save updates
     await Promise.all([user.save(), meme.save()]);
 
-    console.log('Updated meme engagement:', meme.engagement); // Debug log
+    console.log('Updated meme engagement:', meme.engagement);
+    console.log('Updated user points:', user.points);
 
     res.json({
       success: true,
@@ -106,9 +125,9 @@ xports.updateInteraction = async (req, res) => {
     });
   } catch (error) {
     console.error('Interaction error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: error.message 
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
   }
 };
@@ -130,7 +149,7 @@ exports.getLeaderboard = async (req, res) => {
           totalLikes: { $sum: '$engagement.likes' },
           totalSuperLikes: { $sum: '$engagement.superLikes' },
           memeCount: { $sum: 1 },
-          logo: { $first: '$logo' } // Get logo from first meme of project
+          logo: { $first: '$logo' }
         }
       },
       {
@@ -162,6 +181,9 @@ exports.getLeaderboard = async (req, res) => {
     });
   } catch (error) {
     console.error('Leaderboard error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
   }
 };

@@ -1,65 +1,23 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
+require('dotenv').config();
+const app = require('./app');  // Updated path to point to app.js in the same directory
 const connectDB = require('./config/database');
-const User = require('./models/User');
-const morgan = require('morgan');
 
-dotenv.config();
-const app = express();
-
-// Middleware
-app.use(morgan('dev'));
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// DB Test endpoint
-app.get('/test-db', async (req, res) => {
+const startServer = async () => {
   try {
-    const testUser = await User.findOne({ telegramId: 'test123' });
-    res.json({ 
-      status: 'ok', 
-      dbConnected: !!testUser,
-      user: testUser 
+    await connectDB();
+    
+    const PORT = process.env.PORT || 3001;
+    app.listen(PORT, () => {
+      console.log(`
+🚀 Server is running on port ${PORT}
+📱 Environment: ${process.env.NODE_ENV}
+📂 MongoDB: Connected
+      `);
     });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('Failed to start server:', error);
+    process.exit(1);
   }
-});
+};
 
-app.get('/test-memes', async (req, res) => {
-  try {
-    const memes = await Meme.find().limit(5);
-    res.json({
-      count: memes.length,
-      samples: memes
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Import routes
-const userRoutes = require('./routes/userRoutes');
-const memeRoutes = require('./routes/memeRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-const interactionRoutes = require('./routes/interactionRoutes');
-
-// Route middleware
-app.use('/api/users', userRoutes);
-app.use('/api/memes', memeRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/interactions', interactionRoutes);
-
-// Start server after DB connection
-connectDB().then(() => {
-  app.listen(process.env.PORT || 3001, () => {
-    console.log(`Server running on port ${process.env.PORT || 3001}`);
-  });
-});
+startServer();
