@@ -1,4 +1,6 @@
+//RanksPage.jsx
 import React, { useState, useEffect } from 'react';
+import { ENDPOINTS } from '../config/api';
 
 const RanksPage = () => {
   const [leaderboardData, setLeaderboardData] = useState({
@@ -16,8 +18,13 @@ const RanksPage = () => {
 
   const fetchLeaderboardData = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/interactions/leaderboard');
+      console.log('Fetching leaderboard from:', ENDPOINTS.interactions.leaderboard);
+      const response = await fetch(ENDPOINTS.interactions.leaderboard);
+      if (!response.ok) {
+        throw new Error('Failed to fetch leaderboard');
+      }
       const data = await response.json();
+      console.log('Leaderboard data:', data);
       setLeaderboardData(data);
       setLoading(false);
     } catch (error) {

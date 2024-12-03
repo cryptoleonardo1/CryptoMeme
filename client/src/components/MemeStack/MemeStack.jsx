@@ -1,3 +1,4 @@
+//MemeStack.jsx
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MemeCard from '../MemeCard/MemeCard';
@@ -57,23 +58,33 @@ const MemeStack = ({ memes, onMemeChange }) => {
       try {
         const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
         console.log('Updating stats for:', { action, memeId, telegramUser });
-  
-        const response = await fetch('http://localhost:3001/api/interactions/update', {
+    
+        const response = await fetch(ENDPOINTS.interactions.update, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            // Add CORS headers for local development
+            ...(process.env.NODE_ENV === 'development' && {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type'
+            })
           },
           body: JSON.stringify({
             action,
-            memeId: currentMeme._id,
+            memeId: memeId,
             telegramId: telegramUser?.id || 'test123'
           }),
         });
-  
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    
         const data = await response.json();
         console.log('Update response:', data);
-  
-        if (data.meme) {
+    
+        if (data.success && data.meme) {
           setCurrentMeme(prev => ({
             ...prev,
             engagement: {
@@ -83,7 +94,7 @@ const MemeStack = ({ memes, onMemeChange }) => {
             }
           }));
         }
-  
+    
         return data;
       } catch (error) {
         console.error('Error updating stats:', error);

@@ -4,7 +4,7 @@ const Meme = require('../models/Meme');
 const PointsTransaction = require('../models/Points');
 const ViewHistory = require('../models/ViewHistory');
 
-exports.updateInteraction = async (req, res) => {
+xports.updateInteraction = async (req, res) => {
   try {
     console.log('Received request:', {
       body: req.body,
@@ -13,23 +13,19 @@ exports.updateInteraction = async (req, res) => {
 
     const { action, memeId, telegramId } = req.body;
 
-    // Find user and meme (using _id)
+    // Find user
     const user = await User.findOne({ telegramId });
-    const meme = await Meme.findOne({ 
-      $or: [
-        { _id: memeId },
-        { id: Number(memeId) }
-      ]
-    });
+
+    // Find meme by numeric ID
+    const meme = await Meme.findOne({ id: Number(memeId) });
 
     console.log('Lookup results:', {
       userFound: !!user,
       memeFound: !!meme,
       userId: telegramId,
       memeId: memeId,
-      meme: meme ? { id: meme.id, _id: meme._id } : null
+      memeDetails: meme ? { id: meme.id, name: meme.projectName } : null
     });
-
 
     if (!user) {
       console.log('User not found:', telegramId);
