@@ -2,7 +2,9 @@
 const DEV_API_URL = 'http://localhost:3001';
 const PROD_API_URL = 'http://localhost:3001'; // Keep using localhost for now while testing
 
-export const API_URL = process.env.NODE_ENV === 'development' ? DEV_API_URL : PROD_API_URL;
+export const API_URL = import.meta.env.PROD 
+  ? 'https://cryptomeme-theta.vercel.app'  // Production URL
+  : 'http://localhost:3001';               // Development URL
 
 // Helper function for API calls
 export const fetchAPI = async (endpoint, options = {}) => {

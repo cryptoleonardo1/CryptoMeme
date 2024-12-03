@@ -396,9 +396,15 @@ async function seedFromDummy() {
     
         console.log('Clearing existing memes...');
         await Meme.deleteMany({});
-    
+        
+        const memesWithIds = dummyMemes.map(meme => ({
+            ...meme,
+            _id: new mongoose.Types.ObjectId(),
+            id: meme.id
+          }));
+
         console.log('Inserting new memes...');
-        const result = await Meme.insertMany(dummyMemes);
+        const result = await Meme.insertMany(memesWithIds);
         
         // Add this section
         console.log('Verifying inserted memes...');

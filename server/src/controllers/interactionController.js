@@ -12,28 +12,33 @@ exports.updateInteraction = async (req, res) => {
     });
 
     const { action, memeId, telegramId } = req.body;
-    
-    if (!action || !memeId || !telegramId) {
-      console.log('Missing required fields:', { action, memeId, telegramId });
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Missing required fields' 
-      });
-    }
 
-    // Find user and meme
- // Then proceed with database operations
+    // Find user and meme (using _id)
     const user = await User.findOne({ telegramId });
-    const meme = await Meme.findOne({ id: Number(memeId) });
+    const meme = await Meme.findOne({ 
+      $or: [
+        { _id: memeId },
+        { id: Number(memeId) }
+      ]
+    });
+
+    console.log('Lookup results:', {
+      userFound: !!user,
+      memeFound: !!meme,
+      userId: telegramId,
+      memeId: memeId,
+      meme: meme ? { id: meme.id, _id: meme._id } : null
+    });
+
 
     if (!user) {
       console.log('User not found:', telegramId);
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
     
     if (!meme) {
       console.log('Meme not found:', memeId);
-      return res.status(404).json({ message: 'Meme not found' });
+      return res.status(404).json({ success: false, message: 'Meme not found' });
     }
 
     // Initialize engagement if it doesn't exist
@@ -45,6 +50,7 @@ exports.updateInteraction = async (req, res) => {
         views: 0
       };
     }
+
 
     // Determine points and update engagement
     let points = 0;
